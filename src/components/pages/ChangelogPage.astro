@@ -1,0 +1,74 @@
+---
+/**
+ * Changelog page — AX + AXCrew release notes. Bilingual.
+ */
+import PageHero from '../../components/PageHero.astro';
+import { CHANGELOG } from '../../lib/content';
+import { SITE } from '../../lib/site';
+import type { Lang } from '../../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const z = lang === 'zh';
+
+const ax = CHANGELOG.filter((e) => e.product === 'AX');
+const crew = CHANGELOG.filter((e) => e.product === 'AXCrew');
+---
+
+<PageHero
+  kicker={z ? '更新记录' : 'Changelog'}
+  title={z ? '改了什么。' : 'What changed.'}
+  lead={z ? '从仓库发布说明与历史编译而来——每次行为变更一行，而不是每次提交一行。' : 'Compiled from repository release notes and history — one line per behavior change, not per commit.'}
+  meta={[`ax v${SITE.axVersion}`, `axcrew v${SITE.crewVersion}`, 'compiled 2026-10-03']}
+/>
+
+<section class="bg-paper">
+  <div class="container-x section-pad pt-0">
+    <div class="grid gap-12 lg:grid-cols-2">
+      <div class="hairline border-line">
+        <div class="border-b border-line bg-paper-2 px-4 py-2.5 sm:px-5">
+          <span class="mono-micro">AX — {z ? '代理运行时' : 'agent runtime'}</span>
+        </div>
+        {
+          ax.map((e) => (
+            <div class="border-b border-line px-4 py-5 transition-colors duration-200 hover:bg-paper-2 sm:px-5">
+              <p class="font-mono text-[0.8125rem] font-medium text-ink">v{e.version}</p>
+              <ul class="mt-2 space-y-1">
+                {e.entries.map((x) => (
+                  <li class="datum">{x[lang]}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="hairline border-line">
+        <div class="border-b border-line bg-paper-2 px-4 py-2.5 sm:px-5">
+          <span class="mono-micro">AXCrew — {z ? '控制平面' : 'control plane'}</span>
+        </div>
+        {
+          crew.map((e) => (
+            <div class="border-b border-line px-4 py-5 transition-colors duration-200 hover:bg-paper-2 sm:px-5">
+              <p class="font-mono text-[0.8125rem] font-medium text-ink">v{e.version}</p>
+              <ul class="mt-2 space-y-1">
+                {e.entries.map((x) => (
+                  <li class="datum">{x[lang]}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="mt-14 flex flex-wrap gap-x-10 gap-y-3">
+      <span class="datum">{z ? '完整说明 · ' : 'full notes · '}<code class="font-mono text-xs">ax/docs/release-notes</code></span>
+      <span class="datum">{z ? '快照 · ' : 'snapshots · '}<code class="font-mono text-xs">axcrew/docs/releases</code></span>
+      <a href={z ? '/zh/docs' : '/docs'} class="mono-micro text-link">{z ? '文档 →' : 'docs →'}</a>
+    </div>
+  </div>
+</section>

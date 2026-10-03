@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import AxPage from '../components/pages/AxPage.astro';
+
+const lang = 'en';
+const TITLES = { en: 'AX — Agent Runtime', zh: 'AX —— 代理运行时' } as const;
+---
+
+<Base title={TITLES[lang]} lang={lang}>
+  <AxPage lang={lang} />
+</Base>

@@ -1,0 +1,130 @@
+---
+/**
+ * AX page — the runtime. Bilingual.
+ */
+import Section from '../../components/Section.astro';
+import PageHero from '../../components/PageHero.astro';
+import Architecture from '../../components/Architecture.astro';
+import ProviderSwitcher from '../../components/islands/ProviderSwitcher';
+import { SITE } from '../../lib/site';
+import { AX_CAPABILITIES, CLI_REF } from '../../lib/content';
+import type { Lang } from '../../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const z = lang === 'zh';
+---
+
+<PageHero
+  kicker={z ? 'AX · 代理运行时' : 'AX · agent runtime'}
+  title={z ? '代理真正干活的地方。' : 'The runtime where agents work.'}
+  lead={z
+    ? 'AX 在你的机器上以真正的代理循环执行任务：规划、调用工具、委派、记忆、验证。一个内核承载全部能力——本地优先，提供方中立。'
+    : 'AX executes tasks on your machine with a real agent loop: plan, call tools, delegate, remember, verify. One kernel, every capability — local first, provider-neutral.'}
+  meta={[`v${SITE.axVersion}`, 'rust · single binary', z ? '可断点 · 可恢复' : 'checkpointed · resumable', z ? '默认开启沙箱' : 'sandbox on by default']}
+/>
+
+<Section
+  kicker={z ? '01 —— 内核' : '01 — kernel'}
+  title={z ? '一条循环。没有第二个规划器。' : 'One loop. No second planner.'}
+  lead={z
+    ? '代理循环就是模型 → 工具 → 模型：上下文按 token 预算选择、工具轮次感知依赖、结果可断点。长任务、并行子任务与恢复都走同一条循环。'
+    : 'The agent loop is model → tool → model, with context chosen by token budget, dependency-aware tool rounds, and checkpointed results. Long tasks, parallel children and resume all run through the same loop.'}
+>
+  <Architecture />
+</Section>
+
+<Section
+  tone="paper2"
+  kicker={z ? '02 —— 能力' : '02 — capabilities'}
+  title={z ? '代理需要的一切，都有边界。' : 'Everything an agent needs, scoped.'}
+>
+  <div class="grid gap-x-14 gap-y-0 md:grid-cols-2">
+    {
+      AX_CAPABILITIES.map((c) => (
+        <div class="group flex items-baseline justify-between gap-5 border-b border-line px-1 py-4 transition-colors duration-200 hover:bg-paper">
+          <span class="flex min-w-0 items-baseline gap-4">
+            <span class="mono-micro shrink-0 tabular-nums">{c.n}</span>
+            <span class="shrink-0 text-[0.9375rem] font-medium tracking-[-0.01em]">{c.name[lang]}</span>
+          </span>
+          <span class="datum hidden text-right md:block">{c.desc[lang]}</span>
+        </div>
+      ))
+    }
+  </div>
+  <p class="datum mt-8 max-w-2xl">
+    {z
+      ? '技能、MCP 服务器与命名代理共享同一个作用域化注册表——全局与项目定义合并、覆盖生效、被禁用的条目永不加载。配置只是元数据；不被使用就什么都不连接。'
+      : 'Skills, MCP servers and named agents share one scoped registry — global and project definitions merge, overrides win, disabled entries never load. Configuration is metadata; nothing connects until it is used.'}
+  </p>
+</Section>
+
+<Section
+  tone="dark"
+  kicker={z ? '03 —— 模型提供方' : '03 — providers'}
+  title={z ? '设计上提供方中立。' : 'Provider-neutral by design.'}
+  lead={z
+    ? '同一个运行时，不同的后端。凭据留在你的机器上；模型是被发现的，不是被硬编码的。实现一个 trait 即可接入本地模型。'
+    : 'Same runtime, different backend. Credentials stay on your machine; models are discovered, not hard-coded. Add a local model by implementing one trait.'}
+>
+  <ProviderSwitcher client:visible />
+</Section>
+
+<Section
+  kicker={z ? '04 —— CLI' : '04 — cli'}
+  title={z ? '一个二进制。每一条路径。' : 'One binary. Every path.'}
+  lead={z ? 'CLI 是组合根：会话、目标、能力、设备、备份——不需要第二个工具。' : 'The CLI is the composition root: sessions, goals, capabilities, devices, backup — no second tool needed.'}
+>
+  <div class="hairline border-line">
+    {
+      CLI_REF.map((r) => (
+        <div class="flex flex-col gap-1 border-b border-line px-4 py-3.5 transition-colors duration-200 hover:bg-paper-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:px-5">
+          <code class="shrink-0 font-mono text-[0.8125rem] text-ink">{r.cmd}</code>
+          <span class="datum hidden text-right sm:block">{r.desc[lang]}</span>
+        </div>
+      ))
+    }
+  </div>
+</Section>
+
+<Section
+  tone="paper2"
+  kicker={z ? '05 —— 安全' : '05 — safety'}
+  title={z ? '权限是边界，不是弹窗。' : 'Permission is a boundary, not a prompt.'}
+  lead={z
+    ? '每个工具都声明自己的能力与安全级别。UI 与运行时共享同一个 PermissionStore；工作区沙箱是它之下独立的一层操作系统边界。'
+    : 'Every tool declares its own capability and safety level. One PermissionStore is shared by the UI and the runtime; the workspace sandbox is a separate OS boundary underneath.'}
+>
+  <div class="grid gap-10 md:grid-cols-3">
+    <div class="hairline border-line">
+      <p class="mono-micro border-b border-line px-4 py-3">permissions</p>
+      <ul class="space-y-2 px-4 py-4 text-sm text-ink-2">
+        <li>{z ? '按能力 allow / ask / deny' : 'allow / ask / deny per capability'}</li>
+        <li>{z ? '会话授权在恢复时自动清除' : 'session grants auto-clear on resume'}</li>
+        <li>{z ? '显式 deny 永远是上限' : 'explicit deny is always a ceiling'}</li>
+        <li>{z ? 'deny > ask > allow，与顺序无关' : 'deny &gt; ask &gt; allow, order-independent'}</li>
+      </ul>
+    </div>
+    <div class="hairline border-line">
+      <p class="mono-micro border-b border-line px-4 py-3">sandbox</p>
+      <ul class="space-y-2 px-4 py-4 text-sm text-ink-2">
+        <li>{z ? '工具之下的工作区运行时边界' : 'workspace runtime boundary under tools'}</li>
+        <li>{z ? '每个子任务 2 GiB · 根任务 8 GiB · 7 天 TTL' : '2 GiB per child · 8 GiB per root · 7-day TTL'}</li>
+        <li>{z ? '逃逸一律失败关闭——绝不在宿主机重试' : 'escapes fail closed — never retried on host'}</li>
+        <li>{z ? '本地 MCP stdio 同样被隔离' : 'local MCP stdio runs confined too'}</li>
+      </ul>
+    </div>
+    <div class="hairline border-line">
+      <p class="mono-micro border-b border-line px-4 py-3">controls</p>
+      <ul class="space-y-2 px-4 py-4 text-sm text-ink-2">
+        <li>{z ? '预算：步骤 · 工具调用 · 轮次 · 工具超时' : 'budgets: steps · tool calls · turn · tool timeouts'}</li>
+        <li>{z ? '目标：挂起 · 恢复 · 取代 · 取消' : 'goals: suspend · resume · supersede · cancel'}</li>
+        <li>{z ? 'request_user_input 只会暂停，绝不授权' : 'request_user_input parks, never authorizes'}</li>
+        <li>{z ? '每个结果都在推进前完成断点' : 'every result checkpointed before it advances'}</li>
+      </ul>
+    </div>
+  </div>
+</Section>

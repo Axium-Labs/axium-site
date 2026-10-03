@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import DocsPage from '../components/pages/DocsPage.astro';
+
+const lang = 'en';
+const TITLES = { en: 'Docs', zh: '文档' } as const;
+---
+
+<Base title={TITLES[lang]} lang={lang}>
+  <DocsPage lang={lang} />
+</Base>

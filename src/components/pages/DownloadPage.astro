@@ -1,0 +1,104 @@
+---
+/**
+ * Download page — platforms, verify, update, windows. Bilingual.
+ */
+import PageHero from '../../components/PageHero.astro';
+import Section from '../../components/Section.astro';
+import InstallCommand from '../../components/islands/InstallCommand';
+import { SITE } from '../../lib/site';
+import type { Lang } from '../../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const z = lang === 'zh';
+
+const PLATFORM_ROWS: [string, string, string][] = z
+  ? [
+      ['macOS', 'arm64 · x64', 'curl 安装 · 原生二进制'],
+      ['Linux', 'x64 · arm64', 'curl 安装 · 也支持 WSL（~/.local/bin/ax）'],
+      ['Windows', 'x64', 'PowerShell 安装 · 原生或 WSL 执行'],
+      ['Docker', 'any', 'docker run axium/ax · 隔离运行时'],
+      ['npm', 'any', '@axium/cli · 全局启动器'],
+      ['Source', 'any', '从 ax 仓库构建 · cargo build -p cli'],
+    ]
+  : [
+      ['macOS', 'arm64 · x64', 'curl install · native binary'],
+      ['Linux', 'x64 · arm64', 'curl install · also inside WSL (~/.local/bin/ax)'],
+      ['Windows', 'x64', 'PowerShell install · native or WSL execution'],
+      ['Docker', 'any', 'docker run axium/ax · isolated runtime'],
+      ['npm', 'any', '@axium/cli · global launcher'],
+      ['Source', 'any', 'build from the ax repository · cargo build -p cli'],
+    ];
+---
+
+<PageHero
+  kicker={z ? '下载' : 'Download'}
+  title={z ? '把 AX 装到机器上。' : 'Get AX on the machine.'}
+  lead={z
+    ? 'Windows、macOS、Linux 与 WSL 上同一个运行时——再加 Docker 随处可跑。发布物是带 SHA256SUMS 的签名归档；ax --update 按精确 tag 校验。'
+    : 'Same runtime on Windows, macOS, Linux and WSL — plus Docker for anywhere. Releases are signed archives with SHA256SUMS; ax --update verifies against the exact tag.'}
+  meta={[`ax v${SITE.axVersion}`, `axcrew v${SITE.crewVersion}`, z ? '自更新' : 'self-updating', z ? '校验归档' : 'verified archives']}
+/>
+
+<Section>
+  <div class="mx-auto max-w-3xl">
+    <InstallCommand client:visible />
+  </div>
+
+  <div class="mx-auto mt-14 max-w-3xl">
+    <div class="hairline border-line">
+      <div class="grid grid-cols-[8rem_1fr] gap-x-6 border-b border-line bg-paper-2 px-4 py-2.5 sm:grid-cols-[10rem_8rem_1fr]">
+        <span class="mono-micro">{z ? '平台' : 'platform'}</span>
+        <span class="mono-micro hidden sm:block">{z ? '架构' : 'arch'}</span>
+        <span class="mono-micro">{z ? '说明' : 'notes'}</span>
+      </div>
+      {
+        PLATFORM_ROWS.map((row) => (
+          <div class="grid grid-cols-[8rem_1fr] gap-x-6 border-b border-line px-4 py-3.5 sm:grid-cols-[10rem_8rem_1fr]">
+            <span class="font-mono text-[0.8125rem] text-ink">{row[0]}</span>
+            <span class="datum hidden sm:block">{row[1]}</span>
+            <span class="datum">{row[2]}</span>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="mono-micro mt-6">
+      {z
+        ? '包托管（axium/ax · @axium/cli · install.sh）在首次公开发布前仍是占位——上面的源码构建路径是真实的。'
+        : 'package hosts (axium/ax · @axium/cli · install.sh) are placeholders until the first public release — the source build path above is real.'}
+    </p>
+  </div>
+</Section>
+
+<Section tone="paper2">
+  <div class="grid gap-10 md:grid-cols-3">
+    <div class="hairline border-line">
+      <p class="mono-micro border-b border-line px-4 py-3">verify</p>
+      <p class="px-4 py-4 text-sm text-ink-2">
+        {z
+          ? '每个归档都附带 <code class="font-mono text-xs">SHA256SUMS</code>。更新器从官方发布下载、按精确 tag 校验归档，然后替换可执行文件——Windows 会等到运行中的进程退出再换。'
+          : 'Every archive ships with <code class="font-mono text-xs">SHA256SUMS</code>. The updater downloads from the official release, verifies the archive against that exact tag, then replaces the executable — Windows defers the swap until the running process exits.'}
+      </p>
+    </div>
+    <div class="hairline border-line">
+      <p class="mono-micro border-b border-line px-4 py-3">update</p>
+      <p class="px-4 py-4 text-sm text-ink-2">
+        {z
+          ? '<code class="font-mono text-xs">ax --update</code> 检查最新发布、校验并替换当前二进制。它绝不触碰用户数据、会话或项目文件。GitCode 镜像兜底网络故障。'
+          : '<code class="font-mono text-xs">ax --update</code> checks the latest release, verifies it, and replaces the current binary. It never touches user data, sessions or project files. A GitCode mirror covers network failures.'}
+      </p>
+    </div>
+    <div class="hairline border-line">
+      <p class="mono-micro border-b border-line px-4 py-3">windows</p>
+      <p class="px-4 py-4 text-sm text-ink-2">
+        {z
+          ? '安装器用原生 Restart Manager 释放被锁文件——没有脚本、不绕过 ExecutionPolicy。一条设置即可原生或经 WSL 运行 AX：<code class="font-mono text-xs">ax environment wsl</code>。'
+          : 'Installer uses the native Restart Manager to release locked files — no scripts, no ExecutionPolicy bypass. Run AX natively or through WSL with one setting: <code class="font-mono text-xs">ax environment wsl</code>.'}
+      </p>
+    </div>
+  </div>
+</Section>

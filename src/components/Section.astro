@@ -1,0 +1,35 @@
+---
+interface Props {
+  id?: string;
+  tone?: 'light' | 'dark' | 'paper2';
+  kicker?: string;
+  title?: string;
+  lead?: string;
+  /** extra node for the section header row (e.g. a link) */
+}
+
+const { id, tone = 'light', kicker, title, lead } = Astro.props;
+const dark = tone === 'dark';
+---
+
+<section
+  id={id}
+  class:list={[
+    'relative',
+    dark ? 'bg-void text-fog' : tone === 'paper2' ? 'bg-paper-2 text-ink' : 'bg-paper text-ink',
+    'hairline-t',
+  ]}
+>
+  <div class="container-x section-pad">
+    {
+      kicker || title ? (
+        <div class="mb-14 max-w-3xl md:mb-20">
+          {kicker && <p class:list={['kicker', dark && 'kicker-dark']}>{kicker}</p>}
+          {title && <h2 class:list={['h2 mt-4']}>{title}</h2>}
+          {lead && <p class:list={['lede mt-6 max-w-2xl', dark && 'text-fog-2']}>{lead}</p>}
+        </div>
+      ) : null
+    }
+    <slot />
+  </div>
+</section>

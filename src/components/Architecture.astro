@@ -1,0 +1,86 @@
+---
+/**
+ * Architecture — a precise, monochrome layer diagram of the AX runtime,
+ * with the AXCrew control plane entering through the ACP adapter.
+ * Pure HTML/CSS so it stays crisp, responsive and JS-free.
+ */
+
+const LAYERS = [
+  {
+    name: 'frontends',
+    desc: 'cli · tui · acp',
+    note: 'one composition root',
+  },
+  {
+    name: 'agent kernel',
+    desc: 'model ⇄ tool loop',
+    note: 'events · budget · compression',
+    focus: true,
+  },
+  {
+    name: 'capabilities',
+    desc: 'tools · skills · mcp · named agents',
+    note: 'scoped registry · lazy',
+  },
+  {
+    name: 'execution',
+    desc: 'subagents · task queue · parallel DAG',
+    note: 'bounded concurrency · resource-aware',
+  },
+  {
+    name: 'state',
+    desc: 'memory · sqlite · jsonl · sessions',
+    note: 'checkpointed · resumable',
+  },
+  {
+    name: 'sandbox',
+    desc: 'os boundary · permission profiles',
+    note: 'under every tool',
+  },
+  {
+    name: 'providers',
+    desc: 'deepseek · openai · groq · codex · workbuddy',
+    note: 'provider-neutral trait',
+  },
+];
+---
+
+<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_12rem]">
+  <div class="hairline border-line">
+    {
+      LAYERS.map((l, i) => (
+        <div
+          class:list={[
+            'group flex items-baseline justify-between gap-4 border-b border-line px-4 py-4 transition-colors duration-200 sm:px-6',
+            i === 0 ? '' : 'border-t-0',
+            'hover:bg-paper-2',
+          ]}
+        >
+          <div class="flex min-w-0 items-baseline gap-3">
+            <span class="mono-micro shrink-0 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+            <span class="shrink-0 font-mono text-[0.8125rem] text-ink">{l.name}</span>
+          </div>
+          <div class="hidden flex-1 text-right sm:block">
+            <span class="datum">{l.desc}</span>
+          </div>
+          <div class="hidden flex-1 text-right md:block">
+            <span class="mono-micro">{l.note}</span>
+          </div>
+          <span class="text-ink-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100">→</span>
+        </div>
+      ))
+    }
+  </div>
+
+  <aside class="relative hidden lg:block">
+    <div class="absolute inset-y-0 left-4 border-l border-line-2"></div>
+    <div class="absolute top-1/2 left-4 flex -translate-y-1/2 items-center">
+      <span class="h-px w-5 bg-line-2"></span>
+      <span class="mono-micro ml-3 whitespace-nowrap">AXCrew · control plane</span>
+    </div>
+    <div class="absolute top-1/2 left-4 ml-[7.5rem] -translate-y-1/2 whitespace-nowrap">
+      <p class="mono-micro text-ink-3">acp · device bridge</p>
+      <p class="mono-micro mt-1 text-ink-3">rest · ws · ed25519</p>
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,24 @@
+---
+interface Props {
+  title?: string;
+  meta?: string;
+  minHeight?: string;
+}
+
+const { title = 'ax · terminal', meta, minHeight = 'h-[24rem]' } = Astro.props;
+---
+
+<div class="panel-dark grid-bg relative flex flex-col">
+  <div class="hairline-dark-b relative z-10 flex h-9 shrink-0 items-center justify-between bg-void-2 px-3.5">
+    <div class="flex items-center gap-1.5" aria-hidden="true">
+      <span class="h-1.5 w-1.5 bg-line-dark-2"></span>
+      <span class="h-1.5 w-1.5 bg-line-dark-2"></span>
+      <span class="h-1.5 w-1.5 bg-ok"></span>
+    </div>
+    <span class="mono-micro text-fog-2">{title}</span>
+    {meta && <span class="mono-micro text-fog-2">{meta}</span>}
+  </div>
+  <div class={`relative z-10 flex-1 overflow-hidden p-4 sm:p-5 ${minHeight}`}>
+    <slot />
+  </div>
+</div>

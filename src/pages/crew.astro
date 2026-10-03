@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import CrewPage from '../components/pages/CrewPage.astro';
+
+const lang = 'en';
+const TITLES = { en: 'AXCrew — Agent Orchestration', zh: 'AXCrew —— 代理编排' } as const;
+---
+
+<Base title={TITLES[lang]} lang={lang}>
+  <CrewPage lang={lang} />
+</Base>

@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import ChangelogPage from '../components/pages/ChangelogPage.astro';
+
+const lang = 'en';
+const TITLES = { en: 'Changelog', zh: '更新记录' } as const;
+---
+
+<Base title={TITLES[lang]} lang={lang}>
+  <ChangelogPage lang={lang} />
+</Base>

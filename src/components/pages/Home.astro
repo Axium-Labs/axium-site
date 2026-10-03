@@ -1,0 +1,204 @@
+---
+/**
+ * Home — the flagship page. One story: AX runs agents on the machines
+ * you own; AXCrew is the control plane connecting them.
+ */
+import Section from '../../components/Section.astro';
+import TerminalWindow from '../../components/TerminalWindow.astro';
+import CopyButton from '../../components/CopyButton.astro';
+import MachinePanel from '../../components/MachinePanel.astro';
+import DelegateFlow from '../../components/DelegateFlow.astro';
+import CrewConsole from '../../components/CrewConsole.astro';
+import BoundaryGrid from '../../components/BoundaryGrid.astro';
+import CrewTopology from '../../components/islands/CrewTopology';
+import InstallCommand from '../../components/islands/InstallCommand';
+import { SITE, INSTALL } from '../../lib/site';
+import { DELEGATE, KIND_CLASS } from '../../lib/terminal';
+import type { Lang } from '../../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const z = lang === 'zh';
+const installId = 'install-strip';
+---
+
+<!-- ============ HERO ============ -->
+<section class="hairline-b bg-paper">
+  <div class="container-x pb-14 pt-16 lg:pb-16 lg:pt-20">
+    <div class="grid gap-10 lg:grid-cols-12 lg:items-start">
+      <div class="lg:col-span-7">
+        <p class="kicker">{z ? 'AXIUM · 代理基础设施' : 'AXIUM · agent infrastructure'}</p>
+        <h1 class="display mt-5 text-[clamp(2.6rem,5.4vw,4.35rem)]">
+          {z ? (
+            <>
+              一个代理系统。<br />
+              <span class="text-ink-3">覆盖你拥有的每一台机器。</span>
+            </>
+          ) : (
+            <>
+              One agent system.<br />
+              <span class="text-ink-3">Across every machine you own.</span>
+            </>
+          )}
+        </h1>
+        <p class="lede mt-8 max-w-xl">
+          {z
+            ? 'AX 在你自己的笔记本电脑、服务器、GPU 机器与云虚拟机上运行代理——每台机器都是一个隔离节点。AXCrew 把它们接入同一个控制平面：从任意节点委派、在任意机器执行、结果回到发起方。'
+            : 'AX runs agents on your laptop, server, GPU box and cloud VM — each machine an isolated node. AXCrew wires them into one control plane: delegate from any node, run anywhere, get the result back.'}
+        </p>
+
+        <div class="mt-8 flex flex-wrap gap-x-10 gap-y-3">
+          <span class="datum">
+            <a href={z ? '/zh/ax' : '/ax'} class="text-link">AX</a>&ensp;—&ensp;{z ? '每个节点上的代理运行时' : 'agent runtime on every node'}
+          </span>
+          <span class="datum">
+            <a href={z ? '/zh/crew' : '/crew'} class="text-link">AXCrew</a>&ensp;—&ensp;{z ? '整个集群的控制平面' : 'control plane for the fleet'}
+          </span>
+        </div>
+
+        <div class="panel-light mt-8 max-w-xl">
+          <div class="flex items-center justify-between px-4 py-3">
+            <pre id={installId} class="term overflow-x-auto text-ink">
+              <code>
+                <span class="text-ink-3">$ </span>
+                {INSTALL.unix}
+              </code>
+            </pre>
+            <CopyButton target={installId} label="copy" />
+          </div>
+          <div class="hairline-t flex flex-wrap items-center justify-between gap-2 px-4 py-2.5">
+            <span class="mono-micro">{z ? '已验证归档 · SHA256SUMS' : 'verified archive · SHA256SUMS'}</span>
+            <a href={z ? '/zh/download' : '/download'} class="mono-micro text-link">{z ? '所有平台 →' : 'all platforms →'}</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5">
+        <MachinePanel lang={lang} />
+      </div>
+    </div>
+
+    <div class="mt-12 grid grid-cols-1 gap-y-3 hairline-t pt-5 sm:grid-cols-3">
+      <span class="datum">{z ? `ax v${SITE.axVersion} · 每节点一个二进制` : `ax v${SITE.axVersion} · one binary per node`}</span>
+      <span class="datum">{z ? `axcrew v${SITE.crewVersion} · 控制平面` : `axcrew v${SITE.crewVersion} · control plane`}</span>
+      <span class="datum">protocol · acp · rest · ws · ed25519</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01 THE FLEET (core: dynamic task flow) ============ -->
+<Section
+  id="fleet"
+  kicker={z ? '01 —— 集群' : '01 — the fleet'}
+  title={z ? '四台机器。一条任务流。' : 'Four machines. One task flow.'}
+  lead={z
+    ? '请求从笔记本进入；AXCrew 把每个任务路由到最合适的机器——代码交给构建服务器、测试交给 GPU 机器、推理交给云虚拟机。看工作如何在节点之间流转，而每台机器始终运行着自己的 AX。'
+    : 'A request enters on the laptop; AXCrew routes each task to the machine that fits — code on the build server, tests on the GPU box, inference on the cloud VM. Watch work move between nodes while every machine keeps running its own AX.'}
+>
+  <div class="panel-dark grid-bg">
+    <div class="hairline-dark-b flex items-center justify-between bg-void-2 px-4 py-2.5">
+      <span class="mono-micro text-fog-2">{z ? '集群 · 实时' : 'fleet · live'}</span>
+      <span class="mono-micro text-fog-2">{z ? '4 台设备 · 3 个任务进行中' : '4 devices · 3 tasks in flight'}</span>
+    </div>
+    <div class="p-4 sm:p-6">
+      <CrewTopology client:visible lang={lang} />
+    </div>
+  </div>
+
+  <div class="mt-10 flex flex-wrap gap-x-10 gap-y-3">
+    <span class="datum">{z ? '流转 · 设备 → axcrew → ax → 结果' : 'flow · device → axcrew → ax → result'}</span>
+    <span class="datum">{z ? '调度 · 代码 / 测试 / 推理' : 'dispatch · code / test / inference'}</span>
+    <span class="datum">{z ? '传输 · 出站 wss · 无需入站端口' : 'transport · outbound wss · no inbound port'}</span>
+  </div>
+</Section>
+
+<!-- ============ 02 DELEGATE (dark; the one terminal) ============ -->
+<Section
+  id="delegate"
+  tone="dark"
+  kicker={z ? '02 —— 委派' : '02 — delegate'}
+  title={z ? '对任意机器发问。它找到最合适的那台。' : 'Ask any machine. It finds the right one.'}
+  lead={z
+    ? '任务从你的笔记本进入。AXCrew 把它路由到最合适的机器——结果回到发起提问的那个节点。AX 负责干活，AXCrew 负责搬运。'
+    : 'A task enters on your laptop. AXCrew routes it to the machine that fits — and the result comes back to the node that asked. AX runs the work; AXCrew moves it.'}
+>
+  <div class="grid gap-10 lg:grid-cols-5 lg:gap-14">
+    <div class="lg:col-span-3">
+      <div class="panel-dark grid-bg">
+        <div class="hairline-dark-b flex flex-wrap items-center justify-between gap-x-3 gap-y-1 bg-void-2 px-4 py-2.5">
+          <span class="mono-micro text-fog-2">{z ? '委派 · 笔记本 → gpu-box' : 'delegate · laptop → gpu-box'}</span>
+          <span class="mono-micro text-fog-2">outbound wss · acl'd</span>
+        </div>
+        <div class="p-4 sm:p-6">
+          <DelegateFlow />
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-2">
+      <TerminalWindow title="ax · delegate" meta="t-1042">
+        <div class="term flex h-full min-h-0 flex-col">
+          <div class="min-h-0 flex-1 overflow-y-auto">
+            {
+              DELEGATE.map((l) => (
+                <p class={`whitespace-pre-wrap break-words ${KIND_CLASS[l.kind]}`}>{l.text}</p>
+              ))
+            }
+          </div>
+        </div>
+      </TerminalWindow>
+    </div>
+  </div>
+</Section>
+
+<!-- ============ 03 CONTROL ============ -->
+<Section
+  id="control"
+  kicker={z ? '03 —— 控制' : '03 — control'}
+  title={z ? '从任何地方观察集群。' : 'Watch the fleet. From anywhere.'}
+  lead={z
+    ? 'AXCrew 住在你的桌面端和口袋里——一个视图看尽每个节点、每个任务、每行日志。手机上观察，桌面上调度。'
+    : 'AXCrew lives on your desktop and in your pocket — one view of every node, every task, every log. Observe from the phone, dispatch from the desk.'}
+>
+  <CrewConsole lang={lang} />
+  <div class="mt-10 grid grid-cols-1 gap-x-10 gap-y-3 sm:grid-cols-3">
+    <span class="datum">{z ? '观察 · 每个节点，一条流' : 'observe · every node, one stream'}</span>
+    <span class="datum">{z ? '控制 · 桌面应用 · Android 应用' : 'control · desktop app · android app'}</span>
+    <span class="datum">{z ? '调度 · 任务 DAG · 审批代理' : 'schedule · task DAG · approval broker'}</span>
+  </div>
+</Section>
+
+<!-- ============ 04 BOUNDARIES ============ -->
+<Section
+  id="boundaries"
+  tone="paper2"
+  kicker={z ? '04 —— 边界' : '04 — boundaries'}
+  title={z ? '互联，但从不合并。' : 'Connected, but never merged.'}
+  lead={z
+    ? '每个节点都是一个边界：自己的工作区、自己的沙箱、自己的权限。AXCrew 在机器之间路由工作——它从不伸进代理状态。'
+    : 'Every node is a boundary: its own workspace, its own sandbox, its own permissions. AXCrew routes work across machines — it never reaches into agent state.'}
+>
+  <BoundaryGrid lang={lang} />
+</Section>
+
+<!-- ============ 05 INSTALL ============ -->
+<Section
+  id="install"
+  kicker={z ? '05 —— 安装' : '05 — install'}
+  title={z ? '一条命令。每一台机器。' : 'One command. Every machine.'}
+  lead={z
+    ? 'Windows、macOS、Linux、WSL、Docker 上同一个运行时。每个节点装一次，然后用 AXCrew 把整支集群连起来。'
+    : 'Same runtime on Windows, macOS, Linux, WSL, Docker. Install once per node, then connect the fleet with AXCrew.'}
+>
+  <div class="mx-auto max-w-3xl">
+    <InstallCommand client:visible />
+    <p class="datum mt-5 text-center">
+      {z
+        ? <>已经装好了？<a href={lang === 'zh' ? '/zh/docs#cli' : '/docs#cli'} class="text-link">直接看 CLI</a> · 读<a href={lang === 'zh' ? '/zh/docs' : '/docs'} class="text-link">文档</a></>
+        : <>already installed? <a href="/docs#cli" class="text-link">jump to the CLI</a> · read the <a href="/docs" class="text-link">docs</a></>}
+    </p>
+  </div>
+</Section>

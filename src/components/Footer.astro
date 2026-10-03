@@ -1,0 +1,81 @@
+---
+import { FOOTER_COLS, SITE } from '../lib/site';
+import { localized, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+---
+
+<footer class="hairline-dark-t bg-void text-fog">
+  <div class="container-x pt-16 pb-10">
+    <div class="flex flex-wrap items-end justify-between gap-8 hairline-dark-b pb-12">
+      <div>
+        <p class="kicker kicker-dark">AXIUM</p>
+        <p class="mt-4 max-w-sm text-2xl font-semibold tracking-[-0.02em]">
+          {lang === 'zh' ? '在真实机器上运行的代理。' : 'Agents that run on real machines.'}
+        </p>
+      </div>
+      <svg width="40" height="40" viewBox="0 0 16 16" aria-hidden="true" class="opacity-80">
+        <g fill="#eceae6">
+          <rect x="2" y="0" width="2" height="2" />
+          <rect x="6" y="0" width="2" height="2" />
+          <rect x="1" y="1" width="6" height="1" />
+          <rect x="2" y="2" width="4" height="1" />
+          <rect x="1" y="3" width="6" height="3" />
+          <rect x="0" y="4" width="8" height="2" />
+          <rect x="2" y="6" width="4" height="1" />
+        </g>
+        <g fill="#0d0d0e">
+          <rect x="3" y="3" width="1" height="1" />
+          <rect x="6" y="3" width="1" height="1" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="grid grid-cols-2 gap-10 py-12 md:grid-cols-4">
+      {
+        FOOTER_COLS.map((col) => (
+          <div>
+            <p class="mono-micro mb-5 text-fog-2">{col.title[lang]}</p>
+            <ul class="space-y-3">
+              {col.links.map((l) => (
+                <li>
+                  <a href={localized(l.href, lang)} class="text-sm text-fog/85 transition-colors duration-200 hover:text-fog">
+                    {l.label[lang]}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+      <div>
+        <p class="mono-micro mb-5 text-fog-2">{lang === 'zh' ? '发布' : 'Release'}</p>
+        <dl class="space-y-3 text-sm">
+          <div class="flex justify-between gap-4">
+            <dt class="text-fog-2">AX</dt>
+            <dd class="font-mono text-fog">v{SITE.axVersion}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt class="text-fog-2">AXCrew</dt>
+            <dd class="font-mono text-fog">v{SITE.crewVersion}</dd>
+          </div>
+          <div class="flex justify-between gap-4">
+            <dt class="text-fog-2">{lang === 'zh' ? '运行时' : 'Runtime'}</dt>
+            <dd class="font-mono text-fog">Rust</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+
+    <div class="hairline-dark-t flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
+      <p class="mono-micro text-fog-2">© 2026 AXIUM · agent infrastructure</p>
+      <p class="mono-micro text-fog-2">
+        AX — Agent Runtime&ensp;·&ensp;AXCrew — Agent Orchestration
+      </p>
+    </div>
+  </div>
+</footer>

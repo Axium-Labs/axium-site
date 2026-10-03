@@ -1,0 +1,44 @@
+---
+/**
+ * MachinePanel — the hero's right-side visual: the machines you own,
+ * each running AX, all visible from AXCrew. Static, monochrome.
+ */
+import { DEVICES } from '../lib/topology';
+import type { Lang } from '../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+---
+
+<div class="panel-light">
+  <div class="hairline-b flex items-center justify-between bg-paper-2 px-4 py-2.5">
+    <span class="mono-micro text-ink-3">
+      {lang === 'zh' ? `集群 · ${DEVICES.length} 个节点` : `fleet · ${DEVICES.length} nodes`}
+    </span>
+    <span class="mono-micro text-ok">{lang === 'zh' ? '● 在线' : '● online'}</span>
+  </div>
+
+  <ul class="divide-y divide-line">
+    {
+      DEVICES.map((d) => (
+        <li class="flex items-center justify-between gap-3 px-4 py-3">
+          <span class="flex min-w-0 items-center gap-2.5">
+            <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-ok pulse"></span>
+            <span class="truncate text-[0.9375rem] font-medium tracking-[-0.01em]">{d.name[lang]}</span>
+            <span class="mono-micro truncate text-ink-3">{d.detail[lang]}</span>
+          </span>
+          <span class="mono-micro shrink-0 tabular-nums text-ink-2">{d.latency}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="hairline-t px-4 py-2.5">
+    <span class="mono-micro text-ink-3">
+      {lang === 'zh' ? `$ axcrew status --all · ${DEVICES.length} 在线 · 3 个进行中` : `$ axcrew status --all · ${DEVICES.length} online · 3 in flight`}
+    </span>
+  </div>
+</div>

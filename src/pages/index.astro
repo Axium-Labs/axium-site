@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import Home from '../components/pages/Home.astro';
+import { SITE } from '../lib/site';
+
+const lang = 'en';
+---
+
+<Base title={SITE.name} lang={lang}>
+  <Home lang={lang} />
+</Base>

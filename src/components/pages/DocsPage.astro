@@ -1,0 +1,62 @@
+---
+/**
+ * Docs page — essentials index. Bilingual.
+ */
+import PageHero from '../../components/PageHero.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import { DOCS_SECTIONS } from '../../lib/content';
+import type { Lang } from '../../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const z = lang === 'zh';
+---
+
+<PageHero
+  kicker={z ? '文档' : 'Docs'}
+  title={z ? '短文，真实行为。' : 'Short documents, real behavior.'}
+  lead={z
+    ? '完整的分版本文档在仓库里——ax/docs 与 axcrew/docs。这个索引承载要点，保持同样的语气。'
+    : 'The full, versioned documentation lives in the repositories — ax/docs and axcrew/docs. This index carries the essentials, kept in the same voice.'}
+/>
+
+<section class="bg-paper">
+  <div class="container-x section-pad pt-0">
+    <div class="grid gap-12 lg:grid-cols-[16rem_minmax(0,1fr)]">
+      <aside class="hidden lg:block">
+        <nav class="sticky top-28 space-y-1" aria-label="Docs sections">
+          {
+            DOCS_SECTIONS.map((s) => (
+              <a href={`#${s.id}`} class="block border-l border-line px-3 py-1 font-mono text-xs text-ink-2 transition-colors duration-200 hover:border-ink hover:text-ink">
+                {s.title[lang]}
+              </a>
+            ))
+          }
+        </nav>
+      </aside>
+
+      <article class="min-w-0">
+        {
+          DOCS_SECTIONS.map((s, i) => (
+            <div id={s.id} class="scroll-mt-28 hairline-b py-10 first:pt-0">
+              <div class="flex items-baseline gap-4">
+                <span class="mono-micro shrink-0 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+                <h2 class="h3">{s.title[lang]}</h2>
+              </div>
+              <p class="mt-4 max-w-2xl text-[0.9375rem] leading-relaxed text-ink-2">{s.body[lang]}</p>
+              {s.code && (
+                <div class="mt-5 max-w-2xl">
+                  <CodeBlock code={s.code} label={s.id} lang="sh" />
+                </div>
+              )}
+            </div>
+          ))
+        }
+        <p class="mono-micro py-8">{z ? '完 · 更多在仓库 · ax/docs 与 axcrew/docs' : 'end · more in the repositories · ax/docs & axcrew/docs'}</p>
+      </article>
+    </div>
+  </div>
+</section>

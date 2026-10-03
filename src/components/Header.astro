@@ -1,0 +1,93 @@
+---
+import { NAV, SITE } from '../lib/site';
+import { altPath, LANG_LABEL, localized, routeOf, type Lang } from '../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const path = Astro.url.pathname;
+const route = routeOf(path);
+---
+
+<header class="fixed inset-x-0 top-0 z-50 bg-paper hairline-b">
+  <div class="container-x flex h-14 items-center justify-between gap-6">
+    <a href={lang === 'zh' ? '/zh' : '/'} class="flex shrink-0 items-center gap-2.5" aria-label="AXIUM home">
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+        <g fill="#141413">
+          <rect x="2" y="0" width="2" height="2" />
+          <rect x="6" y="0" width="2" height="2" />
+          <rect x="1" y="1" width="6" height="1" />
+          <rect x="2" y="2" width="4" height="1" />
+          <rect x="1" y="3" width="6" height="3" />
+          <rect x="0" y="4" width="8" height="2" />
+          <rect x="2" y="6" width="4" height="1" />
+        </g>
+        <g fill="#fafaf7">
+          <rect x="3" y="3" width="1" height="1" />
+          <rect x="6" y="3" width="1" height="1" />
+        </g>
+      </svg>
+      <span class="text-[15px] font-semibold tracking-[-0.02em]">AXIUM</span>
+    </a>
+
+    <nav class="hidden items-center gap-9 md:flex" aria-label="Main">
+      {
+        NAV.map((n) => (
+          <a
+            href={localized(n.href, lang)}
+            class="nav-link"
+            aria-current={route === '/' ? undefined : route.startsWith(n.href) ? 'page' : undefined}
+          >
+            {n.label[lang]}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="flex shrink-0 items-center gap-5">
+      <!-- language switch -->
+      <nav class="hairline flex items-center" aria-label="Language">
+        {
+          (['en', 'zh'] as const).map((l) =>
+            l === lang ? (
+              <span class={`mono-micro px-2 py-1 ${l === lang ? 'bg-ink text-paper' : ''}`} aria-current="true" lang={l}>
+                {LANG_LABEL[l]}
+              </span>
+            ) : (
+              <a
+                href={altPath(path, l)}
+                class="mono-micro px-2 py-1 text-ink-2 transition-colors duration-200 hover:text-ink"
+                lang={l}
+              >
+                {LANG_LABEL[l]}
+              </a>
+            ),
+          )
+        }
+      </nav>
+
+      <a href={localized('/download', lang)} class="mono-micro flex shrink-0 items-center gap-2" title="Latest release">
+        <span class="pulse h-1.5 w-1.5 rounded-full bg-ok"></span>
+        ax {SITE.axVersion}
+      </a>
+    </div>
+  </div>
+
+  <div class="no-scrollbar container-x overflow-x-auto md:hidden">
+    <nav class="flex items-center gap-7 py-2.5" aria-label="Main mobile">
+      {
+        NAV.map((n) => (
+          <a
+            href={localized(n.href, lang)}
+            class="nav-link whitespace-nowrap"
+            aria-current={route === '/' ? undefined : route.startsWith(n.href) ? 'page' : undefined}
+          >
+            {n.label[lang]}
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>

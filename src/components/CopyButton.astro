@@ -1,0 +1,34 @@
+---
+interface Props {
+  target: string;
+  label?: string;
+  copied?: string;
+}
+
+const { target, label = 'copy', copied = 'copied' } = Astro.props;
+---
+
+<button
+  type="button"
+  class="mono-micro cursor-pointer text-fog-2 transition-colors duration-150 hover:text-fog"
+  data-copy={target}
+  data-copied={copied}
+>
+  {label}
+</button>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const el = document.getElementById(btn.dataset.copy ?? '');
+      if (!el) return;
+      const text = el.textContent ?? '';
+      void navigator.clipboard?.writeText(text.trim()).catch(() => {});
+      const old = btn.textContent;
+      btn.textContent = btn.dataset.copied ?? 'copied';
+      window.setTimeout(() => {
+        btn.textContent = old;
+      }, 1400);
+    });
+  });
+</script>

@@ -1,0 +1,6 @@
+# Cloudflare Pages deployment config.
+# Either deploy through the Pages dashboard (build command `npm run build`,
+# output directory `dist`) or via wrangler: `npx wrangler pages deploy dist`.
+name = "axium"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-03"
