@@ -52,7 +52,7 @@ The site is fully bilingual, route-level (static, no client state):
 | Styling | Tailwind CSS v4 (`@theme` tokens in `src/styles/global.css`) |
 | Interaction | React 19 islands, opt-in only (`client:load` / `client:visible`) |
 | Fonts | Geist Sans + Geist Mono (`@fontsource`) |
-| Deploy | Cloudflare Pages (`wrangler.toml`, output `dist/`) |
+| Deploy | Cloudflare Pages (native static, output `dist/`) |
 
 ## Design System
 
@@ -174,8 +174,13 @@ Website copy is compiled from the real repositories — `../ax/docs/` and
    - Build command: `npm run build`
    - Build output directory: `dist`
    - Node version: 20+ (Astro 7 requires Node 20.9+)
-3. The included `wrangler.toml` already sets `pages_build_output_dir = "dist"`
-   for `wrangler pages deploy` workflows.
+3. **Keep it native** — there is intentionally **no `wrangler.toml`** in this repo.
+   When a `wrangler.toml` is present, Cloudflare Pages switches to
+   "wrangler-driven" builds and force-fills a Deploy command (`npx wrangler
+   deploy`), which fails for a plain static site. Without it, Pages runs the
+   build and publishes `dist/` itself.
+4. Leave the dashboard **Deploy command empty** (it should not appear at all
+   once `wrangler.toml` is gone).
 
 ## Before Launch (placeholders)
 
