@@ -177,6 +177,6 @@ before going live:
 | Site domain | `https://axium.dev` | `astro.config.mjs` (`site`) |
 | Install commands | real — `https://raw.githubusercontent.com/Axium-Labs/AX/main/scripts/install.sh` / `install.ps1`, verbatim from the AX repo README | `src/lib/site.ts` (`INSTALL`) |
 
-## Release synchronization (2026-10-04)
+## Release synchronization (2026-10-05)
 
-Product versions: AX 0.3.4 and AXCrew 0.3.1. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
+Product versions: AX 0.3.6 and AXCrew 0.3.2. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
