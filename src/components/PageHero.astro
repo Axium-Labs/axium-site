@@ -6,7 +6,7 @@ interface Props {
   meta?: string[];
 }
 
-const { kicker, title, lead, meta } = Astro.props;
+const { kicker, title, lead } = Astro.props;
 ---
 
 <section class="hairline-b bg-paper">
@@ -14,12 +14,5 @@ const { kicker, title, lead, meta } = Astro.props;
     <p class="kicker">{kicker}</p>
     <h1 class="display mt-5 max-w-4xl">{title}</h1>
     {lead && <p class="lede mt-7 max-w-2xl">{lead}</p>}
-    {meta && (
-      <div class="mt-10 flex flex-wrap gap-x-10 gap-y-2 hairline-t pt-6">
-        {meta.map((m) => (
-          <span class="datum">{m}</span>
-        ))}
-      </div>
-    )}
   </div>
 </section>

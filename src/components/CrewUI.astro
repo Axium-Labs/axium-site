@@ -1,0 +1,153 @@
+---
+/**
+ * CrewUI — the real AXCrew product surfaces: the desktop app
+ * (devices / tasks / live events) and the Android control client
+ * (tasks / approvals). Static product UI mock — hairline, monochrome,
+ * no truncated mid-word text, no half-empty panels.
+ */
+import { CREW_UI } from '../lib/topology';
+import type { Lang } from '../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const z = lang === 'zh';
+const d = CREW_UI.desktop;
+const m = CREW_UI.mobile;
+---
+
+<div class="grid items-end gap-8 lg:grid-cols-[1.55fr_0.85fr] lg:gap-12">
+  <!-- ============ desktop app ============ -->
+  <div class="panel-dark">
+    <!-- window chrome -->
+    <div class="hairline-dark-b flex items-center justify-between gap-3 bg-void-2 px-4 py-2.5">
+      <span class="flex items-center gap-1.5">
+        <span class="h-2 w-2 rounded-full bg-line-dark-2"></span>
+        <span class="h-2 w-2 rounded-full bg-line-dark-2"></span>
+        <span class="h-2 w-2 rounded-full bg-line-dark-2"></span>
+      </span>
+      <span class="mono-micro text-fog-2">AXCrew</span>
+      <span class="mono-micro shrink-0 text-fog-2">
+        <span class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-ok align-middle"></span>
+        {z ? '4 台设备在线' : '4 devices online'}
+      </span>
+    </div>
+
+    <div class="flex">
+      <!-- left rail -->
+      <nav class="hairline-dark-r hidden shrink-0 flex-col gap-0.5 border-r border-line-dark bg-void-2 p-3 sm:flex" aria-label={z ? '应用导航' : 'app nav'}>
+        {
+          d.nav.map((n, i) => (
+            <span class:list={['mono-micro w-20 px-2 py-1.5', i === 0 ? 'bg-void text-fog' : 'text-fog-2']}>
+              {n.label[lang]}
+            </span>
+          ))
+        }
+      </nav>
+
+      <!-- main column -->
+      <div class="min-w-0 flex-1">
+        <!-- two-pane header: devices | tasks -->
+        <div class="grid grid-cols-2">
+          <div class="hairline-dark-r border-r border-line-dark">
+            <p class="mono-micro bg-void-2 px-4 py-2 text-fog-2">{z ? '设备' : 'devices'}</p>
+            <ul class="divide-y divide-line-dark">
+              {
+                d.devices.map((dev) => (
+                  <li class="flex items-center gap-2.5 px-4 py-2.5">
+                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-ok"></span>
+                    <span class="truncate font-mono text-xs text-fog">{dev.name[lang]}</span>
+                    <span class="mono-micro ml-auto hidden truncate text-fog-2/70 md:inline">{dev.task[lang]}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+          <div>
+            <p class="mono-micro bg-void-2 px-4 py-2 text-fog-2">{z ? '任务' : 'tasks'}</p>
+            <ul class="divide-y divide-line-dark">
+              {
+                d.tasks.map((t) => (
+                  <li class="flex items-baseline justify-between gap-3 px-4 py-2.5">
+                    <span class="min-w-0">
+                      <span class="block truncate font-mono text-xs text-fog">{t.title[lang]}</span>
+                      <span class="mono-micro block truncate text-fog-2/70">{t.node[lang]}</span>
+                    </span>
+                    <span class="mono-micro shrink-0 text-ok">{t.status[lang]}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+        </div>
+
+        <!-- event stream — spans the full main column -->
+        <div class="hairline-dark-t border-t border-line-dark">
+          <div class="flex items-center justify-between bg-void-2 px-4 py-2">
+            <span class="mono-micro text-fog-2">{z ? '实时事件' : 'live events'}</span>
+            <span class="mono-micro text-fog-2">
+              <span class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-ok align-middle"></span>
+              {z ? '流式' : 'streaming'}
+            </span>
+          </div>
+          <ul class="divide-y divide-line-dark">
+            {d.events.map((e) => (
+              <li class="term truncate px-4 py-1.5 text-fog-2">{e.line}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ mobile client ============ -->
+  <div class="mx-auto w-full max-w-[17.5rem]">
+    <div class="panel-dark">
+      <div class="hairline-dark-b flex items-center justify-between bg-void-2 px-4 py-3">
+        <span class="font-mono text-xs font-medium text-fog">{m.header[lang]}</span>
+        <span class="h-1.5 w-1.5 rounded-full bg-ok"></span>
+      </div>
+
+      <div class="hairline-dark-b flex gap-5 bg-void-2 px-4 py-2">
+        {
+          m.sections.map((s, i) => (
+            <span class:list={['mono-micro', i === 1 ? 'text-fog' : 'text-fog-2']}>{s.label[lang]}</span>
+          ))
+        }
+      </div>
+
+      <div class="p-4">
+        <p class="mono-micro text-fog-2">{z ? '任务 · 2' : 'tasks · 2'}</p>
+        <ul class="mt-2.5 space-y-3">
+          {
+            m.tasks.map((t) => (
+              <li>
+                <p class="truncate font-mono text-xs text-fog">{t.title[lang]}</p>
+                <p class="mono-micro mt-0.5 text-fog-2/70">
+                  {t.node[lang]}<span class="text-ok"> · {t.status[lang]}</span>
+                </p>
+              </li>
+            ))
+          }
+        </ul>
+
+        <p class="mono-micro mt-6 text-fog-2">{z ? '审批 · 2' : 'approvals · 2'}</p>
+        <ul class="mt-2.5 space-y-3">
+          {
+            m.approvals.map((a) => (
+              <li>
+                <p class="term truncate text-fog-2">{a[lang]}</p>
+                <div class="mt-2 flex gap-2">
+                  <span class="mono-micro bg-void px-2.5 py-1 text-fog">{z ? '批准' : 'approve'}</span>
+                  <span class="mono-micro border border-line-dark px-2.5 py-1 text-fog-2">{z ? '拒绝' : 'deny'}</span>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

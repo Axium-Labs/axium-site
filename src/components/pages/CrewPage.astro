@@ -1,12 +1,16 @@
 ---
 /**
- * AXCrew page — the control plane. Bilingual.
+ * AXCrew page — five themes: connect, delegate, control, observe,
+ * security. REST endpoints and protocol details live in the docs.
  */
 import Section from '../../components/Section.astro';
 import PageHero from '../../components/PageHero.astro';
-import CrewTopology from '../../components/islands/CrewTopology';
+import SendWork from '../../components/SendWork.astro';
+import CrewUI from '../../components/CrewUI.astro';
+import Boundaries from '../../components/Boundaries.astro';
+import FleetNetwork from '../../components/islands/FleetNetwork';
+import { CREW_UI } from '../../lib/topology';
 import { SITE } from '../../lib/site';
-import { CREW_API } from '../../lib/content';
 import type { Lang } from '../../lib/i18n';
 
 interface Props {
@@ -23,14 +27,16 @@ const z = lang === 'zh';
   lead={z
     ? 'AXCrew 连接你已经拥有的 AX 运行时——笔记本、服务器、GPU 机器、云虚拟机，以及口袋里的手机——并在它们之间调度确定性的工作。AX 守着循环；AXCrew 守着集群。'
     : 'AXCrew connects the AX runtimes you already have — on laptops, servers, GPU boxes, cloud VMs and a phone in your pocket — and schedules deterministic work across them. AX keeps the loop; AXCrew keeps the fleet.'}
-  meta={[`v${SITE.crewVersion}`, 'control plane · desktop · android', 'rest · websocket · acp', 'ed25519 · outbound wss']}
+  meta={[`v${SITE.crewVersion}`, 'control plane · desktop · android', 'ed25519 · outbound wss', z ? '事件只存脱敏元数据' : 'redacted event metadata']}
 />
 
+<!-- ============ 01 CONNECT ============ -->
 <Section
-  kicker={z ? '01 —— 拓扑' : '01 — topology'}
+  id="connect"
+  kicker={z ? '01 — connect' : '01 — connect'}
   title={z ? '一支集群，一个视图。' : 'One fleet, one view.'}
   lead={z
-    ? '设备配对一次，之后在任何地方路由任务、流式接收事件、审批权限。设备只出站连接——不需要入站端口，不需要 SSH。'
+    ? '设备配对一次，之后从任何地方路由任务、流式接收事件、审批权限。设备只出站连接——不需要入站端口，不需要 SSH。'
     : 'Pair a device once, then route tasks, stream events and approve permissions from anywhere. Devices connect out — no inbound port, no SSH.'}
 >
   <div class="panel-dark grid-bg">
@@ -39,100 +45,67 @@ const z = lang === 'zh';
       <span class="mono-micro text-fog-2">laptop · server · gpu · cloud · mobile</span>
     </div>
     <div class="p-4 sm:p-6">
-      <CrewTopology client:visible lang={lang} />
+      <FleetNetwork client:visible lang={lang} />
     </div>
   </div>
 </Section>
 
+<!-- ============ 02 DELEGATE ============ -->
 <Section
+  id="delegate"
   tone="paper2"
-  kicker={z ? '02 —— 工作原理' : '02 — how it works'}
-  title={z ? '调度。连接。观察。' : 'Schedule. Connect. Observe.'}
+  kicker={z ? '02 — delegate' : '02 — delegate'}
+  title={z ? '任务自己找到对的地方。' : 'Work finds the right machine.'}
+  lead={z
+    ? '一个请求在笔记本上进入，被路由到构建服务器与 GPU 机器，结果回到发起方。AX 干活，AXCrew 搬运。'
+    : 'One request enters on the laptop, gets routed to the build server and the GPU box, and the result comes back to the requester. AX does the work; AXCrew moves it.'}
 >
-  <div class="grid gap-10 md:grid-cols-3">
-    <div class="hairline border-line">
-      <p class="mono-micro border-b border-line px-4 py-3">{z ? '调度' : 'schedule'}</p>
-      <ul class="space-y-2.5 px-4 py-4 text-sm text-ink-2">
-        <li>{z ? '任务构成 DAG——构造上保证无环' : 'tasks form a DAG — acyclic by construction'}</li>
-        <li>{z ? '前驱完成，依赖者才运行' : 'dependents run when predecessors complete'}</li>
-        <li>{z ? 'retry 重置 · cancel 中断 · 失败的前驱使后代失败' : 'retry resets · cancel interrupts · failed deps fail descendants'}</li>
-        <li>{z ? '成员与全局并发上限' : 'member &amp; global concurrency limits'}</li>
-      </ul>
-    </div>
-    <div class="hairline border-line">
-      <p class="mono-micro border-b border-line px-4 py-3">{z ? '连接' : 'connect'}</p>
-      <ul class="space-y-2.5 px-4 py-4 text-sm text-ink-2">
-        <li>{z ? '一次性配对码 + Ed25519 挑战' : 'one-time pairing code + Ed25519 challenge'}</li>
-        <li>{z ? '带心跳与退避的出站 WSS' : 'outbound WSS with heartbeats and backoff'}</li>
-        <li>{z ? '私钥永不离开设备' : 'private keys never leave the device'}</li>
-        <li>{z ? '断线标记离线 · 重连即恢复' : 'disconnect marks offline · resume on reconnect'}</li>
-      </ul>
-    </div>
-    <div class="hairline border-line">
-      <p class="mono-micro border-b border-line px-4 py-3">{z ? '观察' : 'observe'}</p>
-      <ul class="space-y-2.5 px-4 py-4 text-sm text-ink-2">
-        <li>{z ? '实时 CrewEvent 流：增量 · 工具调用 · 审批' : 'live CrewEvent stream: deltas · tool calls · approvals'}</li>
-        <li>{z ? '事件索引只存脱敏后的元数据' : 'event index stores redacted metadata only'}</li>
-        <li>{z ? '历史、记忆、工具、凭据始终留在 AX' : 'AX keeps history, memory, tools and credentials'}</li>
-        <li>{z ? '审批代理——5 分钟超时，失败关闭' : 'approval broker — 5 minute timeout, fail closed'}</li>
-      </ul>
-    </div>
-  </div>
+  <SendWork lang={lang} />
 </Section>
 
+<!-- ============ 03 CONTROL ============ -->
 <Section
-  kicker={z ? '03 —— 协议' : '03 — protocol'}
-  title={z ? '三个契约，全部稳定。' : 'Three contracts, all stable.'}
-  lead={z ? 'REST API、WebSocket 事件信封与 ACP 帧都是契约：只做增量改动，由进程级测试验证。' : 'The REST API, the WebSocket event envelope and the ACP framing are contracts: additive changes only, verified by process-level tests.'}
+  id="control"
+  kicker={z ? '03 — control' : '03 — control'}
+  title={z ? '桌面控制。手机审批。' : 'Desktop control. Phone approval.'}
+  lead={z
+    ? 'AXCrew 的桌面端与 Android 客户端连同一套 API：在桌面上调度，在口袋里审批，处处看到同一个集群。'
+    : 'AXCrew\u2019s desktop app and Android client speak the same API: schedule on the desk, approve from the pocket, see the same fleet everywhere.'}
 >
-  <div class="hairline border-line">
+  <CrewUI lang={lang} />
+</Section>
+
+<!-- ============ 04 OBSERVE ============ -->
+<Section
+  id="observe"
+  tone="dark"
+  kicker={z ? '04 — observe' : '04 — observe'}
+  title={z ? '一切都在一条流里。' : 'Everything, in one stream.'}
+  lead={z
+    ? '实时 CrewEvent：路由、工具调用、审批、结果。事件索引只存脱敏后的元数据——完整状态始终留在各台 AX 上。'
+    : 'Live CrewEvents: routing, tool calls, approvals, results. The event index keeps redacted metadata only — full state always stays on each AX.'}
+>
+  <ul class="divide-y divide-line-dark border border-line-dark">
     {
-      CREW_API.map((r) => (
-        <div class="flex flex-col gap-1 border-b border-line px-4 py-3.5 transition-colors duration-200 hover:bg-paper-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:px-5">
-          <code class="shrink-0 font-mono text-[0.8125rem] text-ink">{r.cmd}</code>
-          <span class="datum hidden text-right sm:block">{r.desc[lang]}</span>
-        </div>
+      CREW_UI.desktop.events.map((e, i) => (
+        <li class="term flex items-center gap-4 px-4 py-3 text-fog-2 sm:px-5">
+          <span class="mono-micro shrink-0 tabular-nums text-fog-2/60">{String(i + 1).padStart(2, '0')}</span>
+          <span class="truncate">{e.line}</span>
+        </li>
       ))
     }
-  </div>
-  <div class="mt-8 flex flex-wrap gap-x-10 gap-y-3">
-    <span class="datum">ws · <code class="font-mono text-xs">event_id · kind · task_id · payload</code></span>
-    <span class="datum">acp · line-delimited JSON-RPC 2.0</span>
-    <span class="datum">gateway · ed25519 challenge · heartbeats</span>
-  </div>
+  </ul>
 </Section>
 
+<!-- ============ 05 SECURITY ============ -->
 <Section
-  tone="dark"
-  kicker={z ? '04 —— 客户端' : '04 — clients'}
-  title={z ? '桌面控制。手机审批。' : 'Desktop control. Phone approval.'}
+  id="security"
+  tone="paper2"
+  kicker={z ? '05 — security' : '05 — security'}
+  title={z ? '边界就是安全。' : 'The boundary is the security.'}
+  lead={z
+    ? '每台机器保持自己的工作区、沙箱、权限与身份。AXCrew 在它们之间路由任务与事件——从不把边界打开。'
+    : 'Every machine keeps its own workspace, sandbox, permissions and identity. AXCrew routes tasks and events between them — it never opens a boundary.'}
 >
-  <div class="grid gap-10 md:grid-cols-2">
-    <div class="panel-dark grid-bg">
-      <div class="hairline-dark-b flex items-center justify-between bg-void-2 px-4 py-2.5">
-        <span class="mono-micro text-fog-2">desktop · tauri + react</span>
-        <span class="mono-micro text-fog-2">hosted gateway</span>
-      </div>
-      <ul class="space-y-2.5 px-5 py-5 text-sm text-fog-2">
-        <li class="text-fog">sessions, changes panels, side chats</li>
-        <li>import skills &amp; MCP from Codex, Cursor, Claude, Windsurf</li>
-        <li>{z ? '代理环境——Windows 原生或 WSL' : 'agent environment — Windows native or WSL'}</li>
-        <li>{z ? '内置终端 · 子代理开关 · 使用统计' : 'integrated terminals · subagent switch · usage stats'}</li>
-        <li>{z ? '带校验归档的自更新 AX' : 'self-updating AX with verified archives'}</li>
-      </ul>
-    </div>
-    <div class="panel-dark grid-bg">
-      <div class="hairline-dark-b flex items-center justify-between bg-void-2 px-4 py-2.5">
-        <span class="mono-micro text-fog-2">android · kotlin + compose</span>
-        <span class="mono-micro text-fog-2">control client</span>
-      </div>
-      <ul class="space-y-2.5 px-5 py-5 text-sm text-fog-2">
-        <li class="text-fog">{z ? '配对、浏览 crew 与代理、提交任务' : 'pair, browse crews &amp; agents, submit tasks'}</li>
-        <li>{z ? '流式查看结果与会话历史' : 'stream results and session history'}</li>
-        <li>{z ? '在手机上审批权限' : 'approve permissions from your phone'}</li>
-        <li>{z ? '走 HTTPS/WSS 连接——无 SSH、无需本地 AX' : 'connects over HTTPS/WSS — no SSH, no local AX'}</li>
-        <li>{z ? '与桌面客户端同一套 API' : 'same API as the desktop client'}</li>
-      </ul>
-    </div>
-  </div>
+  <Boundaries lang={lang} />
 </Section>

@@ -1,14 +1,13 @@
 ---
 /**
- * AX page — the runtime. Bilingual.
+ * AX page — four themes only: run anywhere, connect to the fleet,
+ * execute locally, keep state local. Capabilities, providers and the
+ * CLI reference live in the docs.
  */
 import Section from '../../components/Section.astro';
 import PageHero from '../../components/PageHero.astro';
-import Architecture from '../../components/Architecture.astro';
-import ProviderSwitcher from '../../components/islands/ProviderSwitcher';
 import { SITE } from '../../lib/site';
-import { AX_CAPABILITIES, CLI_REF } from '../../lib/content';
-import type { Lang } from '../../lib/i18n';
+import { b, type B, type Lang } from '../../lib/i18n';
 
 interface Props {
   lang?: Lang;
@@ -16,115 +15,134 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
+
+const CONNECT_CMDS = [
+  { cmd: 'ax crew pair <code> --gateway <url>', out: b('pair a device · Ed25519 challenge', '配对设备 · Ed25519 挑战') },
+  { cmd: 'ax crew connect <url>', out: b('outbound WSS · auto-reconnect', '出站 WSS · 自动重连') },
+  { cmd: 'axcrew up', out: b('start the control plane', '启动控制平面') },
+] as const;
+
+const LOCAL_STEPS: B[] = [
+  b('plan · one loop, no second planner', '规划 · 一条循环，没有第二个规划器'),
+  b('act · tools run on this machine', '执行 · 工具在这台机器上运行'),
+  b('verify · results checkpointed', '验证 · 结果全部断点'),
+  b('resume · never re-runs done work', '恢复 · 绝不重跑已完成的工作'),
+];
+
+const STATE_ROWS: { name: B; body: B }[] = [
+  {
+    name: b('History & memory', '历史与记忆'),
+    body: b('Sessions, memory and credentials stay on the machine that owns them. AXCrew sees redacted metadata only.', '会话、记忆与凭据留在拥有它们的那台机器上。AXCrew 只能看到脱敏后的元数据。'),
+  },
+  {
+    name: b('Checkpoints', '断点'),
+    body: b('Every result is checkpointed before execution advances. Suspend, resume, supersede — work is never lost.', '每次结果都在执行推进前完成断点。挂起、恢复、取代——工作永不丢失。'),
+  },
+  {
+    name: b('Backup', '备份'),
+    body: b('ax export / ax import carry a full axpack between machines.', 'ax export / ax import 把完整的 axpack 在机器之间迁移。'),
+  },
+  {
+    name: b('Keys', '密钥'),
+    body: b('Device identity is Ed25519. Private keys never leave the device.', '设备身份是 Ed25519。私钥永不离开设备。'),
+  },
+];
 ---
 
 <PageHero
   kicker={z ? 'AX · 代理运行时' : 'AX · agent runtime'}
   title={z ? '代理真正干活的地方。' : 'The runtime where agents work.'}
   lead={z
-    ? 'AX 在你的机器上以真正的代理循环执行任务：规划、调用工具、委派、记忆、验证。一个内核承载全部能力——本地优先，提供方中立。'
-    : 'AX executes tasks on your machine with a real agent loop: plan, call tools, delegate, remember, verify. One kernel, every capability — local first, provider-neutral.'}
-  meta={[`v${SITE.axVersion}`, 'rust · single binary', z ? '可断点 · 可恢复' : 'checkpointed · resumable', z ? '默认开启沙箱' : 'sandbox on by default']}
+    ? 'AX 是一台机器上的代理运行时：一个二进制，本地执行，能加入由 AXCrew 连接的集群。能力细节在文档里——这里只讲它在哪里跑、如何连接、如何守住边界。'
+    : 'AX is the agent runtime on a machine: one binary, local execution, able to join a fleet connected by AXCrew. The capability details live in the docs — here is where it runs, how it connects, and how it keeps its boundary.'}
+  meta={[`v${SITE.axVersion}`, 'rust · single static binary', z ? '本地优先 · 提供方中立' : 'local first · provider-neutral', z ? '断点 · 可恢复' : 'checkpointed · resumable']}
 />
 
+<!-- ============ 01 CONNECT TO FLEET ============ -->
 <Section
-  kicker={z ? '01 —— 内核' : '01 — kernel'}
-  title={z ? '一条循环。没有第二个规划器。' : 'One loop. No second planner.'}
-  lead={z
-    ? '代理循环就是模型 → 工具 → 模型：上下文按 token 预算选择、工具轮次感知依赖、结果可断点。长任务、并行子任务与恢复都走同一条循环。'
-    : 'The agent loop is model → tool → model, with context chosen by token budget, dependency-aware tool rounds, and checkpointed results. Long tasks, parallel children and resume all run through the same loop.'}
->
-  <Architecture />
-</Section>
-
-<Section
-  tone="paper2"
-  kicker={z ? '02 —— 能力' : '02 — capabilities'}
-  title={z ? '代理需要的一切，都有边界。' : 'Everything an agent needs, scoped.'}
->
-  <div class="grid gap-x-14 gap-y-0 md:grid-cols-2">
-    {
-      AX_CAPABILITIES.map((c) => (
-        <div class="group flex items-baseline justify-between gap-5 border-b border-line px-1 py-4 transition-colors duration-200 hover:bg-paper">
-          <span class="flex min-w-0 items-baseline gap-4">
-            <span class="mono-micro shrink-0 tabular-nums">{c.n}</span>
-            <span class="shrink-0 text-[0.9375rem] font-medium tracking-[-0.01em]">{c.name[lang]}</span>
-          </span>
-          <span class="datum hidden text-right md:block">{c.desc[lang]}</span>
-        </div>
-      ))
-    }
-  </div>
-  <p class="datum mt-8 max-w-2xl">
-    {z
-      ? '技能、MCP 服务器与命名代理共享同一个作用域化注册表——全局与项目定义合并、覆盖生效、被禁用的条目永不加载。配置只是元数据；不被使用就什么都不连接。'
-      : 'Skills, MCP servers and named agents share one scoped registry — global and project definitions merge, overrides win, disabled entries never load. Configuration is metadata; nothing connects until it is used.'}
-  </p>
-</Section>
-
-<Section
+  id="connect-fleet"
   tone="dark"
-  kicker={z ? '03 —— 模型提供方' : '03 — providers'}
-  title={z ? '设计上提供方中立。' : 'Provider-neutral by design.'}
+  kicker={z ? '01 — connect to the fleet' : '01 — connect to the fleet'}
+  title={z ? '加入集群，只需要一次配对。' : 'Join the fleet with one pairing.'}
   lead={z
-    ? '同一个运行时，不同的后端。凭据留在你的机器上；模型是被发现的，不是被硬编码的。实现一个 trait 即可接入本地模型。'
-    : 'Same runtime, different backend. Credentials stay on your machine; models are discovered, not hard-coded. Add a local model by implementing one trait.'}
+    ? 'AXCrew 是控制平面；每台 AX 设备通过出站连接加入它。没有入站端口，没有 SSH，没有私钥离开设备。'
+    : 'AXCrew is the control plane; every AX device joins it over an outbound connection. No inbound port, no SSH, no private key leaving the device.'}
 >
-  <ProviderSwitcher client:visible />
+  <div class="grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
+    <div class="panel-dark grid-bg">
+      <div class="hairline-dark-b bg-void-2 px-4 py-2.5">
+        <span class="mono-micro text-fog-2">{z ? 'CLI · 命令保持英文' : 'cli · commands stay english'}</span>
+      </div>
+      <div class="space-y-5 p-5 sm:p-6">
+        {
+          CONNECT_CMDS.map((c) => (
+            <div>
+              <code class="term text-fog">$ {c.cmd}</code>
+              <p class="mono-micro mt-1 text-fog-2">{c.out[lang]}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+    <div class="space-y-4">
+      {
+        [
+          b('One-time pairing code + Ed25519 challenge', '一次性配对码 + Ed25519 挑战'),
+          b('Outbound WSS with heartbeats and backoff', '带心跳与退避的出站 WSS'),
+          b('Disconnect marks offline · resume on reconnect', '断线标记离线 · 重连即恢复'),
+          b('AXCrew never reaches into agent state', 'AXCrew 从不伸进代理状态'),
+        ].map((t) => (
+          <p class="hairline-b border-b border-line-dark pb-3 font-mono text-[0.8125rem] text-fog-2">{t[lang]}</p>
+        ))
+      }
+    </div>
+  </div>
 </Section>
 
+<!-- ============ 02 EXECUTE LOCALLY ============ -->
 <Section
-  kicker={z ? '04 —— CLI' : '04 — cli'}
-  title={z ? '一个二进制。每一条路径。' : 'One binary. Every path.'}
-  lead={z ? 'CLI 是组合根：会话、目标、能力、设备、备份——不需要第二个工具。' : 'The CLI is the composition root: sessions, goals, capabilities, devices, backup — no second tool needed.'}
+  id="execute-locally"
+  kicker={z ? '02 — execute locally' : '02 — execute locally'}
+  title={z ? '循环在机器上运行。' : 'The loop runs on the machine.'}
+  lead={z
+    ? 'AX 的代理循环——规划、调用工具、验证、断点——全部在这台机器上发生。子代理在同一台机器上隔离执行；沙箱是工具之下的操作系统边界。'
+    : 'AX\u2019s agent loop — plan, call tools, verify, checkpoint — happens entirely on this machine. Subagents run isolated on the same machine; a sandbox sits under every tool.'}
 >
   <div class="hairline border-line">
     {
-      CLI_REF.map((r) => (
-        <div class="flex flex-col gap-1 border-b border-line px-4 py-3.5 transition-colors duration-200 hover:bg-paper-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6 sm:px-5">
-          <code class="shrink-0 font-mono text-[0.8125rem] text-ink">{r.cmd}</code>
-          <span class="datum hidden text-right sm:block">{r.desc[lang]}</span>
+      LOCAL_STEPS.map((s, i) => (
+        <div class="flex items-baseline gap-4 border-b border-line px-4 py-4 last:border-b-0 sm:px-5">
+          <span class="mono-micro shrink-0 tabular-nums text-ink-3">{String(i + 1).padStart(2, '0')}</span>
+          <span class="font-mono text-[0.8125rem] text-ink">{s[lang]}</span>
         </div>
       ))
     }
   </div>
 </Section>
 
+<!-- ============ 03 KEEP STATE LOCAL ============ -->
 <Section
+  id="keep-state-local"
   tone="paper2"
-  kicker={z ? '05 —— 安全' : '05 — safety'}
-  title={z ? '权限是边界，不是弹窗。' : 'Permission is a boundary, not a prompt.'}
+  kicker={z ? '03 — keep state local' : '03 — keep state local'}
+  title={z ? '状态留在它所属的机器上。' : 'State stays where it belongs.'}
   lead={z
-    ? '每个工具都声明自己的能力与安全级别。UI 与运行时共享同一个 PermissionStore；工作区沙箱是它之下独立的一层操作系统边界。'
-    : 'Every tool declares its own capability and safety level. One PermissionStore is shared by the UI and the runtime; the workspace sandbox is a separate OS boundary underneath.'}
+    ? '历史、记忆、凭据、密钥——都留在本地。AXCrew 路由任务和流式事件，但它从不触碰代理状态。'
+    : 'History, memory, credentials, keys — all stay local. AXCrew routes tasks and streams events; it never touches agent state.'}
 >
-  <div class="grid gap-10 md:grid-cols-3">
-    <div class="hairline border-line">
-      <p class="mono-micro border-b border-line px-4 py-3">permissions</p>
-      <ul class="space-y-2 px-4 py-4 text-sm text-ink-2">
-        <li>{z ? '按能力 allow / ask / deny' : 'allow / ask / deny per capability'}</li>
-        <li>{z ? '会话授权在恢复时自动清除' : 'session grants auto-clear on resume'}</li>
-        <li>{z ? '显式 deny 永远是上限' : 'explicit deny is always a ceiling'}</li>
-        <li>{z ? 'deny > ask > allow，与顺序无关' : 'deny &gt; ask &gt; allow, order-independent'}</li>
-      </ul>
-    </div>
-    <div class="hairline border-line">
-      <p class="mono-micro border-b border-line px-4 py-3">sandbox</p>
-      <ul class="space-y-2 px-4 py-4 text-sm text-ink-2">
-        <li>{z ? '工具之下的工作区运行时边界' : 'workspace runtime boundary under tools'}</li>
-        <li>{z ? '每个子任务 2 GiB · 根任务 8 GiB · 7 天 TTL' : '2 GiB per child · 8 GiB per root · 7-day TTL'}</li>
-        <li>{z ? '逃逸一律失败关闭——绝不在宿主机重试' : 'escapes fail closed — never retried on host'}</li>
-        <li>{z ? '本地 MCP stdio 同样被隔离' : 'local MCP stdio runs confined too'}</li>
-      </ul>
-    </div>
-    <div class="hairline border-line">
-      <p class="mono-micro border-b border-line px-4 py-3">controls</p>
-      <ul class="space-y-2 px-4 py-4 text-sm text-ink-2">
-        <li>{z ? '预算：步骤 · 工具调用 · 轮次 · 工具超时' : 'budgets: steps · tool calls · turn · tool timeouts'}</li>
-        <li>{z ? '目标：挂起 · 恢复 · 取代 · 取消' : 'goals: suspend · resume · supersede · cancel'}</li>
-        <li>{z ? 'request_user_input 只会暂停，绝不授权' : 'request_user_input parks, never authorizes'}</li>
-        <li>{z ? '每个结果都在推进前完成断点' : 'every result checkpointed before it advances'}</li>
-      </ul>
-    </div>
+  <div class="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
+    {
+      STATE_ROWS.map((r) => (
+        <div class="bg-paper-2 p-6">
+          <p class="font-mono text-[0.8125rem] font-medium tracking-[-0.01em] text-ink">{r.name[lang]}</p>
+          <p class="mt-2.5 text-sm leading-relaxed text-ink-2">{r.body[lang]}</p>
+        </div>
+      ))
+    }
   </div>
+  <p class="datum mt-8">
+    {z
+      ? '工具、技能、MCP、记忆、子代理、沙箱、提供方、CLI——完整参考在文档里。'
+      : 'Tools, skills, MCP, memory, subagents, sandbox, providers, CLI — the full reference is in the docs.'}
+  </p>
 </Section>

@@ -4,8 +4,6 @@ import { AFTER_INSTALL, INSTALL } from '../../lib/site';
 const TABS = [
   { id: 'unix', label: 'macOS / Linux', cmd: INSTALL.unix },
   { id: 'windows', label: 'Windows', cmd: INSTALL.windows },
-  { id: 'docker', label: 'Docker', cmd: INSTALL.docker },
-  { id: 'npm', label: 'npm', cmd: INSTALL.npm },
 ] as const;
 
 type TabId = (typeof TABS)[number]['id'];

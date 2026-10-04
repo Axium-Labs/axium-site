@@ -1,5 +1,5 @@
 ---
-import { NAV, SITE } from '../lib/site';
+import { NAV } from '../lib/site';
 import { altPath, LANG_LABEL, localized, routeOf, type Lang } from '../lib/i18n';
 
 interface Props {
@@ -67,11 +67,6 @@ const route = routeOf(path);
           )
         }
       </nav>
-
-      <a href={localized('/download', lang)} class="mono-micro flex shrink-0 items-center gap-2" title="Latest release">
-        <span class="pulse h-1.5 w-1.5 rounded-full bg-ok"></span>
-        ax {SITE.axVersion}
-      </a>
     </div>
   </div>
 

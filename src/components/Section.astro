@@ -5,10 +5,13 @@ interface Props {
   kicker?: string;
   title?: string;
   lead?: string;
-  /** extra node for the section header row (e.g. a link) */
+  /** width of the body slot; 'reading' narrows prose, default full container */
+  bodyWidth?: 'full' | 'reading' | 'reading-wide';
+  /** suppress the default top hairline (used by the hero) */
+  flush?: boolean;
 }
 
-const { id, tone = 'light', kicker, title, lead } = Astro.props;
+const { id, tone = 'light', kicker, title, lead, bodyWidth = 'full', flush = false } = Astro.props;
 const dark = tone === 'dark';
 ---
 
@@ -17,19 +20,21 @@ const dark = tone === 'dark';
   class:list={[
     'relative',
     dark ? 'bg-void text-fog' : tone === 'paper2' ? 'bg-paper-2 text-ink' : 'bg-paper text-ink',
-    'hairline-t',
+    !flush && 'hairline-t',
   ]}
 >
   <div class="container-x section-pad">
     {
       kicker || title ? (
-        <div class="mb-14 max-w-3xl md:mb-20">
+        <div class="container-reading mb-14 md:mb-20">
           {kicker && <p class:list={['kicker', dark && 'kicker-dark']}>{kicker}</p>}
           {title && <h2 class:list={['h2 mt-4']}>{title}</h2>}
-          {lead && <p class:list={['lede mt-6 max-w-2xl', dark && 'text-fog-2']}>{lead}</p>}
+          {lead && <p class:list={['lede mt-6', dark && 'text-fog-2']}>{lead}</p>}
         </div>
       ) : null
     }
-    <slot />
+    <div class:list={[bodyWidth === 'reading' && 'container-reading', bodyWidth === 'reading-wide' && 'container-reading-wide']}>
+      <slot />
+    </div>
   </div>
 </section>

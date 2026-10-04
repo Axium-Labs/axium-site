@@ -1,0 +1,63 @@
+---
+/**
+ * SendWork — the one complete real scenario, end to end:
+ * laptop writes the fix → AXCrew routes the build → server compiles →
+ * AXCrew routes the bench → GPU runs it → the result returns to laptop.
+ * No telemetry; every line is a real command or its actual output.
+ */
+import { SEND_WORK, machineOf } from '../lib/topology';
+import type { Lang } from '../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const z = lang === 'zh';
+const DIR: Record<string, string> = { out: '→', back: '←', local: '·' };
+---
+
+<div class="panel-dark grid-bg">
+  <div class="hairline-dark-b flex flex-wrap items-center justify-between gap-2 bg-void-2 px-4 py-2.5">
+    <span class="mono-micro text-fog-2">{SEND_WORK.title[lang]}</span>
+    <span class="mono-micro text-fog-2">{z ? '一个请求 · 四台机器参与' : 'one request · four machines'}</span>
+  </div>
+
+  <div class="p-5 sm:p-8">
+    <!-- the request that starts it all -->
+    <p class="term text-fog">
+      <span class="text-fog-2">$ </span>
+      <span class="text-fog">ax run "optimize the sort benchmark"</span>
+    </p>
+
+    <ol class="mt-6">
+      {
+        SEND_WORK.steps.map((s, i) => {
+          const isLast = i === SEND_WORK.steps.length - 1;
+          const name = s.node === 'axcrew' ? 'AXCrew' : machineOf(s.node).name[lang];
+          return (
+            <li class="flex gap-4">
+              <div class="flex flex-col items-center">
+                <span
+                  class:list={[
+                    'mt-2 h-2 w-2 shrink-0 rounded-full',
+                    s.dir === 'back' ? 'bg-ok' : s.dir === 'local' ? 'bg-fog-2' : 'bg-fog',
+                  ]}
+                ></span>
+                {!isLast && <span class="w-px flex-1 bg-line-dark"></span>}
+              </div>
+              <div class="min-w-0 flex-1 pb-7 last:pb-0">
+                <div class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+                  <span class="mono-micro text-fog-2">{DIR[s.dir]}</span>
+                  <span class="font-mono text-[0.8125rem] font-medium text-fog">{name}</span>
+                  <code class="term text-fog-2">{s.cmd}</code>
+                </div>
+                <p class="term mt-1 text-fog-2/70">{s.out}</p>
+              </div>
+            </li>
+          );
+        })
+      }
+    </ol>
+  </div>
+</div>

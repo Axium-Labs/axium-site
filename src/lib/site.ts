@@ -3,8 +3,8 @@ import { b, type B } from './i18n';
 export const SITE = {
   name: 'AXIUM',
   domain: 'https://axium.dev',
-  axVersion: '0.3.3',
-  crewVersion: '0.3.0',
+  axVersion: '0.3.4',
+  crewVersion: '0.3.1',
   tagline: b(
     'One agent system across every machine you own.',
     '一个代理系统，覆盖你拥有的每一台机器。',
@@ -29,18 +29,16 @@ export const NAV: NavItem[] = [
 ];
 
 /**
- * Install command templates.
- * The axium.dev endpoints are placeholders — point them at the real
- * release host before going live (see README "Deploy").
+ * Install commands — verbatim from the AX repository README
+ * (raw.githubusercontent.com/Axium-Labs/AX/main/scripts/).
  */
 export const INSTALL = {
-  unix: 'curl -fsSL https://axium.dev/install.sh | sh',
-  windows: 'irm https://axium.dev/install.ps1 | iex',
-  docker: 'docker run -it --rm axium/ax:latest',
-  npm: 'npm install -g @axium/cli',
+  unix: 'curl -fsSL https://raw.githubusercontent.com/Axium-Labs/AX/main/scripts/install.sh | sh',
+  windows:
+    'powershell -ExecutionPolicy Bypass -c "iex ((iwr \'https://raw.githubusercontent.com/Axium-Labs/AX/main/scripts/install.ps1\' -UseBasicParsing).Content)"',
 } as const;
 
-export const AFTER_INSTALL = ['ax --version', 'axcrew up', 'ax run "hello from a real machine"'] as const;
+export const AFTER_INSTALL = ['ax --version', 'ax run "hello from a real machine"'] as const;
 
 export interface FooterCol {
   title: B;

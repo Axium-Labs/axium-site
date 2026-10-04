@@ -1,0 +1,33 @@
+---
+/**
+ * Connected. Not merged. — every machine keeps its boundary:
+ * workspace, sandbox, permissions, device identity. Four concepts,
+ * one line each. No fleet repetition.
+ */
+import { BOUNDARIES } from '../lib/topology';
+import type { Lang } from '../lib/i18n';
+
+interface Props {
+  lang?: Lang;
+}
+
+const { lang = 'en' } = Astro.props;
+const z = lang === 'zh';
+---
+
+<div class="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+  {
+    BOUNDARIES.map((b) => (
+      <div class="bg-paper-2 p-6">
+        <p class="font-mono text-[0.8125rem] font-medium tracking-[-0.01em] text-ink">{b.name[lang]}</p>
+        <p class="mt-2.5 text-sm leading-relaxed text-ink-2">{b.body[lang]}</p>
+      </div>
+    ))
+  }
+</div>
+
+<p class="datum mt-8">
+  {z
+    ? 'AXCrew 只在机器之间路由任务——它从不伸进代理状态。'
+    : 'AXCrew routes work across machines — it never reaches into agent state.'}
+</p>

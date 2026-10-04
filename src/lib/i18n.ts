@@ -25,6 +25,11 @@ export function b(en: string, zh: string): B {
   return { en, zh };
 }
 
+/** pick the value for the current language */
+export function pick(x: B, lang: Lang): string {
+  return lang === 'zh' ? x.zh : x.en;
+}
+
 /** which language a given pathname is */
 export function langOf(path: string): Lang {
   return path.startsWith('/zh') ? 'zh' : 'en';

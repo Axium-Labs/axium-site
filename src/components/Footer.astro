@@ -1,5 +1,5 @@
 ---
-import { FOOTER_COLS, SITE } from '../lib/site';
+import { FOOTER_COLS } from '../lib/site';
 import { localized, type Lang } from '../lib/i18n';
 
 interface Props {
@@ -35,7 +35,7 @@ const { lang = 'en' } = Astro.props;
       </svg>
     </div>
 
-    <div class="grid grid-cols-2 gap-10 py-12 md:grid-cols-4">
+    <div class="grid grid-cols-2 gap-10 py-12 md:grid-cols-3">
       {
         FOOTER_COLS.map((col) => (
           <div>
@@ -52,23 +52,6 @@ const { lang = 'en' } = Astro.props;
           </div>
         ))
       }
-      <div>
-        <p class="mono-micro mb-5 text-fog-2">{lang === 'zh' ? '发布' : 'Release'}</p>
-        <dl class="space-y-3 text-sm">
-          <div class="flex justify-between gap-4">
-            <dt class="text-fog-2">AX</dt>
-            <dd class="font-mono text-fog">v{SITE.axVersion}</dd>
-          </div>
-          <div class="flex justify-between gap-4">
-            <dt class="text-fog-2">AXCrew</dt>
-            <dd class="font-mono text-fog">v{SITE.crewVersion}</dd>
-          </div>
-          <div class="flex justify-between gap-4">
-            <dt class="text-fog-2">{lang === 'zh' ? '运行时' : 'Runtime'}</dt>
-            <dd class="font-mono text-fog">Rust</dd>
-          </div>
-        </dl>
-      </div>
     </div>
 
     <div class="hairline-dark-t flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">

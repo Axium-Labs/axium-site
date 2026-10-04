@@ -39,8 +39,8 @@ The site is fully bilingual, route-level (static, no client state):
 - **Policy:** terminal output, CLI commands, code, hostnames and node ids stay
   English — exactly as they appear in the real tools. UI chrome (headings,
   lede, labels, tables, nav, footer) is translated.
-- The React islands take `lang` as a prop (`<CrewTopology client:visible
-  lang={lang} />`) so the fleet device names / status table follow the page
+- The React islands take `lang` as a prop (`<FleetNetwork client:visible
+  lang={lang} />`) so the fleet node names / flow labels follow the page
   language.
 
 ## Tech Stack
@@ -50,7 +50,7 @@ The site is fully bilingual, route-level (static, no client state):
 | Framework | Astro 7 (static output) |
 | Language | TypeScript (strict) |
 | Styling | Tailwind CSS v4 (`@theme` tokens in `src/styles/global.css`) |
-| Interaction | React 19 islands, opt-in only (`client:load` / `client:visible`) |
+| Interaction | React 19 islands, opt-in only — `FleetNetwork` (live topology) + `InstallCommand` (platform tabs) |
 | Fonts | Geist Sans + Geist Mono (`@fontsource`) |
 | Deploy | Cloudflare Pages (native static, output `dist/`) |
 
@@ -78,36 +78,27 @@ All tokens live in `src/styles/global.css`:
 ## Homepage Narrative
 
 The homepage is one story, not a feature list: **AX runs agents on the machines
-you own; AXCrew is the control plane that connects them.**
+you own; AXCrew is the control plane that connects them.** The visitor should
+get it in five seconds — nothing else.
 
-```
-Laptop / Server / GPU Server / Cloud VM   ← each runs its own AX (ax-01..ax-04)
-        ↓
-      AXCrew  (control plane · gateway)
-        ↓
-  one task flow: route → dispatch → execute → return → done
-```
-
-Homepage sections (all grounded in the real fleet scenario):
+Homepage sections (single source of demo data: `src/lib/topology.ts`):
 
 | # | Section | What it shows |
 |---|---|---|
-| Hero | — | "One agent system. Across every machine you own." + machine panel (`MachinePanel`) + install strip |
-| 01 | The Fleet | `CrewTopology` as the core visual — a **live task flow**: 3 tasks leave the laptop, route through AXCrew, execute on server / GPU / cloud, results return. Not a static diagram. |
-| 02 | Delegate | Static delegate scene (`DelegateFlow`: laptop → AXCrew → gpu-box, out + return edges) beside the **single terminal** (`DELEGATE` script) |
-| 03 | Control | `CrewConsole` — AXCrew from desktop / mobile: node table + live CrewEvent stream |
-| 04 | Boundaries | `BoundaryGrid` — workspace / sandbox / permissions per node; ed25519 pairing; state stays local |
-| 05 | Install | `InstallCommand` (platform tabs) |
+| Hero | — | "One agent system. Across every machine you own." — headline + lede + **the install command right under the lede** (real URLs from the AX repo), then the **signature visual**: `FleetNetwork`, a large live topology (machines you own around the AXCrew control plane) with ONE task cycling task → route → execute → result. No telemetry. |
+| 01 | Send work where it belongs | The one complete real scenario (`SendWork`): `ax run "optimize the sort benchmark"` — laptop writes the fix, AXCrew routes the build to the server, routes the bench to the GPU box, the result returns. Merges the old Fleet + Delegate sections into a single journey. |
+| 02 | Control every machine | `CrewUI` — the real AXCrew product surfaces: the desktop app (crews / agents / tasks / approvals) and the Android control client (fleet / tasks / approvals). No terminal-table substitute. |
+| 03 | Connected. Not merged. | `Boundaries` — four concepts, one line each: workspace / sandbox / permissions / device identity. No fleet repetition. |
 
 Rules:
 
-- The only Terminal on the homepage is the delegate scene (02). No autoplay
-  terminal, no second terminal.
-- Capabilities (Skills / MCP / Memory / Providers / CLI) live on `/ax`; docs on
-  `/docs`. They are deliberately absent from the homepage.
-- `CrewTopology` is shared with `/crew`; its task-flow phases (route / dispatch /
-  execute / return / done) animate via CSS transitions on `cx`/`cy` (positional
-  state changes only, reduced-motion safe).
+- The fleet (Laptop / Server / GPU / Cloud) appears in the Hero topology and in
+  the Send-work scenario — nowhere else. No repeated node lists, no task ids,
+  no fake latency, no timestamps.
+- The only React islands are `FleetNetwork` (the live task flow) and
+  `InstallCommand` (tabs + copy). Everything else is static Astro.
+- Capabilities (Skills / MCP / Memory / Providers / CLI) live in the docs
+  (`/docs`); `/ax` and `/crew` keep only their four/five product themes.
 
 ## Structure
 
@@ -117,42 +108,37 @@ src/
 ├─ components/
 │  ├─ Header.astro           # top nav + EN|中文 switch (mobile: horizontal scroll)
 │  ├─ Footer.astro           # dark footer (bilingual)
-│  ├─ Section.astro          # light / dark / paper2 section wrapper
+│  ├─ Section.astro          # light / dark / paper2 wrapper — unified spacing & reading width
 │  ├─ PageHero.astro         # subpage hero
-│  ├─ TerminalWindow.astro   # terminal chrome
 │  ├─ CodeBlock.astro        # code block + copy
 │  ├─ CopyButton.astro
-│  ├─ Architecture.astro     # 7-layer architecture diagram (used on /ax)
-│  ├─ MachinePanel.astro     # hero machine list (home)
-│  ├─ DelegateFlow.astro     # laptop → AXCrew → gpu delegate scene, no JS (home)
-│  ├─ CrewConsole.astro      # desktop / mobile control pane (home)
-│  ├─ BoundaryGrid.astro     # per-node boundaries grid (home)
+│  ├─ SendWork.astro         # the one complete task journey (home + /crew)
+│  ├─ CrewUI.astro           # AXCrew desktop + mobile product UI mock (home + /crew)
+│  ├─ Boundaries.astro       # workspace / sandbox / permissions / identity (home + /crew)
 │  └─ pages/                 # one bilingual component per route body
-│     ├─ Home.astro          # / and /zh
-│     ├─ AxPage.astro        # /ax and /zh/ax
-│     ├─ CrewPage.astro      # /crew and /zh/crew
+│     ├─ Home.astro          # / and /zh — 5 movements (hero / send work / control / boundaries / install)
+│     ├─ AxPage.astro        # /ax and /zh/ax — run anywhere · connect · execute locally · keep state local
+│     ├─ CrewPage.astro      # /crew and /zh/crew — connect · delegate · control · observe · security
 │     ├─ DocsPage.astro      # /docs and /zh/docs
 │     ├─ DownloadPage.astro  # /download and /zh/download
 │     └─ ChangelogPage.astro # /changelog and /zh/changelog
 ├─ components/islands/       # React — only where state is needed
-│  ├─ CrewTopology.tsx       # fleet task flow: devices → AXCrew → AX, live (home + /crew)
-│  ├─ InstallCommand.tsx     # platform tabs + copy
-│  └─ ProviderSwitcher.tsx   # dark provider panel (/ax)
+│  ├─ FleetNetwork.tsx       # live fleet topology: machines → AXCrew → AX, one task cycling (home hero + /crew)
+│  └─ InstallCommand.tsx     # platform tabs + copy
 ├─ lib/                      # data layer (all copy lives here)
-│  ├─ i18n.ts                # Lang / B / b() / path helpers
+│  ├─ i18n.ts                # Lang / B / b() / pick() / path helpers
 │  ├─ site.ts                # SITE / NAV / INSTALL / FOOTER_COLS
-│  ├─ terminal.ts            # terminal scripts (grounded in real AX behavior)
-│  ├─ graph.ts               # agent graph data
-│  ├─ topology.ts            # fleet devices / tasks / ps table / console events
-│  └─ content.ts             # capabilities, boundaries, CLI ref, docs, changelog
+│  ├─ topology.ts            # single demo data model: machines · flow steps · send-work scenario · crew UI · boundaries
+│  └─ content.ts             # docs sections + changelog
 ├─ pages/                    # EN: /  /ax  /crew  /docs  /download  /changelog
 ├─ pages/zh/                 # 中文: /zh …
 └─ styles/global.css         # design system (Tailwind v4 @theme)
 ```
 
-> `TerminalDemo.tsx` / `AgentGraph.tsx` were the earlier homepage demos; they are
-> kept in the repo as a future technical-page demo but are not referenced by any
-> route.
+Layout system (in `src/styles/global.css`): one page width (`container-x`, 76rem),
+one reading width (`container-reading`, 42rem), one section spacing
+(`section-pad`), plus `container-reading-wide` for wide visuals. Sections no
+longer carry their own ad-hoc widths.
 
 ## Content Grounding
 
@@ -161,9 +147,8 @@ Website copy is compiled from the real repositories — `../ax/docs/` and
 
 - Version badges in `src/lib/site.ts` (`axVersion`, `crewVersion`) must match the
   current real releases (ax v0.3.3, axcrew v0.3.0).
-- Terminal scripts, architecture layers, protocol tables and changelog entries
-  describe actual behavior; when AX/AXCrew behavior changes, update the site
-  accordingly.
+- Demo task flows, product UI mocks, docs and changelog entries describe actual
+  behavior; when AX/AXCrew behavior changes, update the site accordingly.
 - Do not add marketing filler ("Revolutionize", "Supercharge", …). Voice is short,
   technical, direct.
 
@@ -190,5 +175,8 @@ before going live:
 | Item | Current | Where |
 |---|---|---|
 | Site domain | `https://axium.dev` | `astro.config.mjs` (`site`) |
-| Install script host | `https://axium.dev/install.sh` / `install.ps1` | `src/lib/site.ts`, install pages |
-| Package hosts | `@axium/cli`, Docker image name | install/download pages |
+| Install commands | real — `https://raw.githubusercontent.com/Axium-Labs/AX/main/scripts/install.sh` / `install.ps1`, verbatim from the AX repo README | `src/lib/site.ts` (`INSTALL`) |
+
+## Release synchronization (2026-10-04)
+
+Product versions: AX 0.3.4 and AXCrew 0.3.1. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
