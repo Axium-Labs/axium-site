@@ -11,7 +11,7 @@
 import { b, type B } from './i18n';
 
 /* ============================================================
-   Machines — every machine runs its own AX.
+   Machines — this demo shows one AX per Host; distributed Hosts may run multiple instances.
    ============================================================ */
 
 export interface Machine {
@@ -27,7 +27,7 @@ export const MACHINES: Machine[] = [
   { id: 'cloud', name: b('Cloud VM', '云虚拟机'), detail: b('inference · EU spot', '推理 · 欧盟竞价') },
 ];
 
-/** One AX per machine, same order as MACHINES. */
+/** Example deployment: one AX per machine, same order as MACHINES; not a cardinality constraint. */
 export const AX_NODES = ['ax-01', 'ax-02', 'ax-03', 'ax-04'] as const;
 
 export function machineOf(id: string): Machine {
@@ -127,6 +127,7 @@ export const CREW_UI = {
       { id: 'agents', label: b('Agents', '代理') },
       { id: 'tasks', label: b('Tasks', '任务') },
       { id: 'approvals', label: b('Approvals', '审批') },
+      { id: 'distributed', label: b('Distributed', '分布式协作') },
       { id: 'settings', label: b('Settings', '设置') },
     ] as CrewNavItem[],
     devices: [

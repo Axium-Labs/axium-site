@@ -146,7 +146,7 @@ Website copy is compiled from the real repositories — `../ax/docs/` and
 `../axcrew/docs/` plus their release notes. Rules:
 
 - Version badges in `src/lib/site.ts` (`axVersion`, `crewVersion`) must match the
-  current real releases (ax v0.3.3, axcrew v0.3.0).
+  current real releases (ax v0.3.7, axcrew v0.3.3).
 - Demo task flows, product UI mocks, docs and changelog entries describe actual
   behavior; when AX/AXCrew behavior changes, update the site accordingly.
 - Do not add marketing filler ("Revolutionize", "Supercharge", …). Voice is short,
@@ -179,4 +179,8 @@ before going live:
 
 ## Release synchronization (2026-10-05)
 
-Product versions: AX 0.3.6 and AXCrew 0.3.2. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
+Product versions: AX 0.3.7 and AXCrew 0.3.3. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
+
+## Distributed Collaboration content (2026-10-05)
+
+The AXCrew page describes the optional distributed layer introduced in AX 0.3.7 / AXCrew 0.3.3: Host / AX Instance / Execution cardinality, capability plus Host-resource scheduling, durable Tasks/Events/Artifacts/Workflow State, asynchronous recovery without a permanent Coordinator Agent and the dedicated desktop page. AX/AXCrew data-boundary copy now distinguishes complete local Session/Memory from selected shared task summaries/checkpoints/artifacts. Topology diagrams show an example one-instance-per-Host deployment, not a restriction. Release badges and bilingual changelog now identify AX 0.3.7 / AXCrew 0.3.3. The website commit synchronizes these releases; production build passes.

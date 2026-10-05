@@ -27,7 +27,7 @@ const z = lang === 'zh';
   lead={z
     ? 'AXCrew 连接你已经拥有的 AX 运行时——笔记本、服务器、GPU 机器、云虚拟机，以及口袋里的手机——并在它们之间调度确定性的工作。AX 守着循环；AXCrew 守着集群。'
     : 'AXCrew connects the AX runtimes you already have — on laptops, servers, GPU boxes, cloud VMs and a phone in your pocket — and schedules deterministic work across them. AX keeps the loop; AXCrew keeps the fleet.'}
-  meta={[`v${SITE.crewVersion}`, 'control plane · desktop · android', 'ed25519 · outbound wss', z ? '事件只存脱敏元数据' : 'redacted event metadata']}
+  meta={[`v${SITE.crewVersion}`, 'control plane · desktop · android', 'ed25519 · outbound wss', z ? '持久化协作状态' : 'durable collaboration state']}
 />
 
 <!-- ============ 01 CONNECT ============ -->
@@ -55,7 +55,7 @@ const z = lang === 'zh';
   id="delegate"
   tone="paper2"
   kicker={z ? '02 — delegate' : '02 — delegate'}
-  title={z ? '任务自己找到对的地方。' : 'Work finds the right machine.'}
+  title={z ? '任务找到具备能力的 AX。' : 'Work finds a capable AX.'}
   lead={z
     ? '一个请求在笔记本上进入，被路由到构建服务器与 GPU 机器，结果回到发起方。AX 干活，AXCrew 搬运。'
     : 'One request enters on the laptop, gets routed to the build server and the GPU box, and the result comes back to the requester. AX does the work; AXCrew moves it.'}
@@ -82,8 +82,8 @@ const z = lang === 'zh';
   kicker={z ? '04 — observe' : '04 — observe'}
   title={z ? '一切都在一条流里。' : 'Everything, in one stream.'}
   lead={z
-    ? '实时 CrewEvent：路由、工具调用、审批、结果。事件索引只存脱敏后的元数据——完整状态始终留在各台 AX 上。'
-    : 'Live CrewEvents: routing, tool calls, approvals, results. The event index keeps redacted metadata only — full state always stays on each AX.'}
+    ? '实时 CrewEvent：路由、工具调用、审批、结果。普通会话的事件索引保存脱敏元数据；分布式协作持久化任务、检查点与明确发布的产物，完整 Session 和 Memory 仍留在 AX。'
+    : 'Live CrewEvents: routing, tool calls, approvals, results. The ordinary session event index keeps redacted metadata. Distributed collaboration persists tasks, checkpoints and published artifacts; complete Session and Memory stores stay on AX.'}
 >
   <ul class="divide-y divide-line-dark border border-line-dark">
     {
@@ -108,4 +108,23 @@ const z = lang === 'zh';
     : 'Every machine keeps its own workspace, sandbox, permissions and identity. AXCrew routes tasks and events between them — it never opens a boundary.'}
 >
   <Boundaries lang={lang} />
+</Section>
+
+<Section
+  id="distributed"
+  kicker={z ? 'Distributed Collaboration · AX 0.3.7 / AXCrew 0.3.3' : 'Distributed Collaboration · AX 0.3.7 / AXCrew 0.3.3'}
+  title={z ? '工作流持续存在，AX 可以接替。' : 'Durable workflows, replaceable AX workers.'}
+  lead={z
+    ? 'Host 提供共享资源，AX Instance 提供独立能力，一个 Host 可运行多个 AX，一个 AX 可并发执行多个 Execution。AXCrew 统一管理调度、归属、租约与恢复；AX 保持现有推理与执行循环。桌面侧边栏新增专门的分布式协作管理页。'
+    : 'Hosts provide shared resources; independent AX instances provide capabilities. A Host may run several AX instances, each with concurrent executions. AXCrew owns scheduling, ownership, leases and recovery; AX keeps its reasoning and execution loop. A dedicated desktop sidebar page manages collaboration.'}
+>
+  <div class="panel-dark p-6 sm:p-8">
+    <p class="font-mono text-sm leading-8 text-fog">{z
+      ? '任务分解 → 能力调度 → 跨机器执行 → Event / Artifact 回传 → 状态持久化 → 失败恢复 / 重新规划 → 继续执行'
+      : 'Decompose → capability scheduling → cross-machine execution → Event / Artifact return → persisted state → recovery / replanning → continue'}</p>
+    <p class="mt-4 text-sm leading-7 text-fog-2">{z
+      ? 'Durable Task、Event、Artifact 和 Workflow State 保存在 AXCrew。各 AX 异步拉取工作，不依赖高频直接通信，也不要求任何 Coordinator Agent 持续存活。项目按逻辑身份映射到各机器路径，每次执行使用隔离工作区。现有单机 AX 与设备控制继续独立使用。'
+      : 'AXCrew retains durable Tasks, Events, Artifacts and Workflow State. AX workers pull work asynchronously without direct peer communication or a permanently live Coordinator Agent. Logical project identities map to machine-local paths and isolated execution workspaces. Existing single-machine AX and device controls remain available.'}</p>
+    <p class="mt-4 font-mono text-xs text-fog-2">ax crew worker worker.json</p>
+  </div>
 </Section>

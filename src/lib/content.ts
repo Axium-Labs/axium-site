@@ -14,6 +14,24 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.3.7',
+    product: 'AX',
+    entries: [
+      b('Optional distributed ACP worker and collaboration Tool', '可选的分布式 ACP Worker 与 collaboration 工具'),
+      b('Isolated attempt workspaces, Artifact exchange and checkpoint recovery', '隔离执行工作区、Artifact 交换与检查点恢复'),
+      b('Durable async collaboration without a permanent Coordinator Agent', '持久化异步协作，无需持续存活的 Coordinator Agent'),
+    ],
+  },
+  {
+    version: '0.3.3',
+    product: 'AXCrew',
+    entries: [
+      b('Distributed control plane: capability plus shared Host-resource scheduling', '分布式控制层：AX 能力与 Host 共享资源联合调度'),
+      b('Durable Tasks, Events, Artifacts and Workflow State with fenced recovery', 'Durable Task、Event、Artifact 与 Workflow State，带执行代次隔离和恢复'),
+      b('Dedicated Distributed management page in the desktop sidebar', '桌面侧边栏新增分布式协作管理页'),
+    ],
+  },
+  {
     version: '0.3.3',
     product: 'AX',
     entries: [
