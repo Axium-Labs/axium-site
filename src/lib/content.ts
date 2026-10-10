@@ -202,16 +202,16 @@ export const DOCS_SECTIONS: DocSection[] = [
     id: 'subagents',
     title: b('Subagents', '子代理'),
     body: b(
-      'Delegation is off by default and adds one tool: subagent(task, context, tools, policy). Children run the same kernel in isolated workspaces with their own session and memory; the controller receives a compact ChildResult, and a durable receipt means resume never re-runs completed work.',
-      '委派默认关闭，开启后新增一个工具：subagent(task, context, tools, policy)。子任务在隔离工作区里运行同一个内核，拥有自己的会话与记忆；控制器收到紧凑的 ChildResult，持久化的收据保证恢复时绝不重跑已完成的工作。',
+      'Delegation is available by default through subagent and subagent_fork. AXCrew’s Plugins → Agents page controls global/project depth and parallelism: 0 disables delegation, 1 permits direct children, and larger depths permit nested delegation. Children share a concurrency budget and permission ceiling; isolated children keep their own workspace, session and memory, while forked children share the parent workspace and completed conversation context.',
+      '默认提供 subagent 与 subagent_fork 委派工具。AXCrew 的「插件 → 智能体」页可设置全局或项目的深度与并行上限：0 关闭，1 允许直接子智能体，更大的深度允许递归委派。各层共享并行名额与权限上限；隔离子任务拥有独立工作区、会话和记忆，fork 子任务共享父级工作区与已完成的对话上下文。',
     ),
   },
   {
     id: 'sandbox',
     title: b('Sandbox', '沙箱'),
     body: b(
-      'A runtime workspace sandbox sits below tools and local MCP: OS-enforced confinement, workspace quotas, idle TTLs, and permission profiles (deny > ask > allow). A rule can restrict; the OS boundary stays independent.',
-      '运行时工作区沙箱位于工具与本地 MCP 之下：操作系统强制的隔离、工作区配额、空闲 TTL，以及权限配置（deny > ask > allow）。规则可以限制行为；操作系统边界保持独立。',
+      'File and terminal tools use the workspace sandbox; native OS confinement currently requires Linux. Application/site access and action approvals are separate. Host UI grants do not change the workspace boundary; Windows/macOS native sandbox backends remain unavailable.',
+      '文件与终端工具遵循工作区沙箱；原生操作系统隔离目前需要 Linux。应用、网站访问与具体操作审批分别管理，主机界面授权不改变工作区边界。Windows/macOS 原生沙箱后端尚未实现。',
     ),
   },
   {

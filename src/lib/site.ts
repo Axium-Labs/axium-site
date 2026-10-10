@@ -3,7 +3,7 @@ import { b, type B } from './i18n';
 export const SITE = {
   name: 'AXIUM',
   domain: 'https://axium.dev',
-  axVersion: '0.3.8',
+  axVersion: '0.3.10',
   crewVersion: '0.3.4',
   tagline: b(
     'One agent system across every machine you own.',

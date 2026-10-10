@@ -105,8 +105,8 @@ const STATE_ROWS: { name: B; body: B }[] = [
   kicker={z ? '02 — execute locally' : '02 — execute locally'}
   title={z ? '循环在机器上运行。' : 'The loop runs on the machine.'}
   lead={z
-    ? 'AX 的代理循环——规划、调用工具、验证、断点——全部在这台机器上发生。子代理在同一台机器上隔离执行；沙箱是工具之下的操作系统边界。'
-    : 'AX\u2019s agent loop — plan, call tools, verify, checkpoint — happens entirely on this machine. Subagents run isolated on the same machine; a sandbox sits under every tool.'}
+    ? 'AX 的代理循环——规划、调用工具、验证、断点——全部在这台机器上发生。文件与终端遵循工作区沙箱，应用与网站访问单独授权；原生操作系统隔离目前需要 Linux。'
+    : 'AX\u2019s agent loop — plan, call tools, verify, checkpoint — happens entirely on this machine. File and terminal tools use the workspace sandbox; app and website access is authorized separately. Native OS confinement currently requires Linux.'}
 >
   <div class="hairline border-line">
     {
