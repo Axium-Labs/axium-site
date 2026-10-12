@@ -115,8 +115,8 @@ const z = lang === 'zh';
   kicker={z ? 'Distributed Collaboration · AX 0.3.7 / AXCrew 0.3.3' : 'Distributed Collaboration · AX 0.3.7 / AXCrew 0.3.3'}
   title={z ? '工作流持续存在，AX 可以接替。' : 'Durable workflows, replaceable AX workers.'}
   lead={z
-    ? 'Host 提供共享资源，AX Instance 提供独立能力，一个 Host 可运行多个 AX，一个 AX 可并发执行多个 Execution。AXCrew 统一管理调度、归属、租约与恢复；AX 保持现有推理与执行循环。桌面侧边栏新增专门的分布式协作管理页。'
-    : 'Hosts provide shared resources; independent AX instances provide capabilities. A Host may run several AX instances, each with concurrent executions. AXCrew owns scheduling, ownership, leases and recovery; AX keeps its reasoning and execution loop. A dedicated desktop sidebar page manages collaboration.'}
+    ? 'Host 提供共享资源，AX Instance 提供独立能力，一个 Host 可运行多个 AX，一个 AX 可通过独立 Session 参与多个 Goal；并发由实际执行槽位、工作区和共享资源约束决定。AXCrew 统一管理调度、归属、租约与恢复；AX 保持现有推理与执行循环。桌面协作工作台包含协作、节点与执行活动三个视图。'
+    : 'Hosts provide shared resources; independent AX instances provide capabilities. A Host may run several AX instances, and an AX can serve multiple Goals through isolated Sessions; execution slots, workspaces and shared resources constrain concurrency. AXCrew owns scheduling, ownership, leases and recovery; AX keeps its reasoning and execution loop. The desktop workbench provides collaboration, nodes and execution activity views.'}
 >
   <div class="panel-dark p-6 sm:p-8">
     <p class="font-mono text-sm leading-8 text-fog">{z

@@ -191,3 +191,9 @@ Product versions: AX 0.3.7 and AXCrew 0.3.3. The download pages consume `src/lib
 The AXCrew page describes the optional distributed layer introduced in AX 0.3.7 / AXCrew 0.3.3: Host / AX Instance / Execution cardinality, capability plus Host-resource scheduling, durable Tasks/Events/Artifacts/Workflow State, asynchronous recovery without a permanent Coordinator Agent and the dedicated desktop page. AX/AXCrew data-boundary copy now distinguishes complete local Session/Memory from selected shared task summaries/checkpoints/artifacts. Topology diagrams show an example one-instance-per-Host deployment, not a restriction. Release badges and bilingual changelog now identify AX 0.3.7 / AXCrew 0.3.3. The website commit synchronizes these releases; production build passes.
 
 The Subagents reference in `src/lib/content.ts` follows AX’s default depth 1 / concurrency 8 and AXCrew’s Plugins → Agents controls for scoped depth, shared parallelism and nested delegation.
+
+
+The Crew distributed section describes the current collaboration/node/activity
+workbench and makes Session isolation distinct from concurrency capacity. This
+copy follows AX/AXCrew distributed feature documentation; no release badge,
+changelog entry or deployment is changed by the workbench development task.
