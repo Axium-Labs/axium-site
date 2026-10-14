@@ -1,0 +1,44 @@
+---
+/**
+ * TermPanel — a static terminal-style panel: title bar + body.
+ *
+ * Used for the home page's scroll sections (left column) and anywhere a
+ * concrete piece of AX output needs to sit next to explanatory prose.
+ * Static Astro on purpose — no island, no hydration, renders immediately.
+ */
+interface Props {
+  /** mono uppercase label shown in the title bar */
+  title: string;
+  /** optional right-aligned status text */
+  meta?: string;
+  /** sticky within its grid column on large screens */
+  sticky?: boolean;
+  class?: string;
+}
+
+const { title, meta, sticky = true, class: className = '' } = Astro.props;
+---
+
+<div
+  class:list={[
+    'term-surface overflow-hidden',
+    sticky && 'lg:sticky lg:top-24',
+    className,
+  ]}
+>
+  <div class="divider-dark-b flex items-center justify-between gap-4 bg-[var(--color-void-raised)] px-4 py-2.5">
+    <span class="mono-micro uppercase text-[var(--color-void-text-2)]">{title}</span>
+    {
+      meta && (
+        <span class="mono-micro flex shrink-0 items-center gap-1.5 text-[var(--color-void-text-2)]">
+          <span class="h-1 w-1 rounded-full bg-[var(--color-accent-muted)] pulse"></span>
+          {meta}
+        </span>
+      )
+    }
+  </div>
+
+  <div class="term p-5 text-[var(--color-void-text)]">
+    <slot />
+  </div>
+</div>

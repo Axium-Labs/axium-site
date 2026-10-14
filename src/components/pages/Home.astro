@@ -1,17 +1,20 @@
 ---
 /**
- * Home — one story, five movements:
- * Hero (the fleet as the signature visual) → Send work where it belongs →
- * Control every machine → Connected. Not merged. → Install.
- * No capability lists, no telemetry decoration, no repeated fleet panels.
+ * Home — pi.dev-style editorial layout.
+ *
+ *   Hero      centered: headline + one-line claim + install command
+ *   Why AX    the argument, as prose
+ *   Then a run of paired sections: left = real output, right = why it matters
+ *   Close     install + links
+ *
+ * Every claim is sourced from ax/docs and axcrew/docs.
  */
-import Section from '../../components/Section.astro';
-import SendWork from '../../components/SendWork.astro';
-import CrewUI from '../../components/CrewUI.astro';
-import Boundaries from '../../components/Boundaries.astro';
-import FleetNetwork from '../../components/islands/FleetNetwork';
 import InstallCommand from '../../components/islands/InstallCommand';
+import ScrollSection from '../../components/ScrollSection.astro';
+import TermPanel from '../../components/TermPanel.astro';
+import Reveal from '../../components/Reveal.astro';
 import { type Lang } from '../../lib/i18n';
+import { SITE } from '../../lib/site';
 
 interface Props {
   lang?: Lang;
@@ -19,105 +22,411 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
+
+/* ── the argument, in four claims (docs/architecture.md) ── */
+const WHY = z
+  ? [
+      {
+        t: '状态不会离开这台机器。',
+        d: '会话、记忆、凭据与模型配置都存在本地。没有需要注册的服务，没有远端遥测，没有代理云。',
+      },
+      {
+        t: '内核负责机制，技能决定行为。',
+        d: 'AX 是运行时内核：上下文、模型、工具、事件、权限、执行循环。任务怎么做，由技能和调用方决定，不在内核里。',
+      },
+      {
+        t: '一个二进制，一条循环。',
+        d: 'Rust 写的单个原生二进制，没有第二个规划器。就绪的独立工具调用按有界并发执行，每一步都在推进前落盘。',
+      },
+      {
+        t: '每台机器上的代理，一个地方管。',
+        d: 'AXCrew 是控制平面：把多个 AX 实例连起来调度工作，但从不伸进任何一个代理的状态。',
+      },
+    ]
+  : [
+      {
+        t: 'State never leaves the machine.',
+        d: 'Sessions, memory, credentials and model config live locally. No service to sign up for, no remote telemetry, no agent cloud.',
+      },
+      {
+        t: 'The kernel owns mechanism. Skills decide behaviour.',
+        d: 'AX is a runtime kernel: context, models, tools, events, permissions and the loop. How a task gets done is decided by skills and the caller, not by the kernel.',
+      },
+      {
+        t: 'One binary, one loop.',
+        d: 'A single native Rust binary with no second planner. Ready independent tool calls run with bounded concurrency, and every step is written before execution advances.',
+      },
+      {
+        t: 'Agents on every machine. One place to run them.',
+        d: 'AXCrew is the control plane: it connects multiple AX instances and schedules work across them, without ever reaching into an agent\u2019s state.',
+      },
+    ];
 ---
 
-<!-- ============ HERO — the fleet is the visual, install is up front ============ -->
-<section class="hairline-b bg-paper">
-  <div class="container-x pt-16 text-center lg:pt-20">
-    <p class="kicker">{z ? 'AXIUM · 代理基础设施' : 'AXIUM · agent infrastructure'}</p>
-    <h1 class="display mt-5">
-      {z ? (
-        <>
-          一个代理系统。<br />
-          <span class="text-ink-3">覆盖你拥有的每一台机器。</span>
-        </>
-      ) : (
-        <>
-          One agent system.<br />
-          <span class="text-ink-3">Across every machine you own.</span>
-        </>
-      )}
-    </h1>
+<!-- ════════════════ HERO — centred, like pi.dev ════════════════ -->
+<section class="relative overflow-hidden border-b border-[var(--color-border)]">
+  <!-- faint grid texture, faded at the edges -->
+  <div class="grid-bg grid-fade pointer-events-none absolute inset-0" aria-hidden="true"></div>
 
-    <div class="container-reading mx-auto mt-7">
-      <p class="lede">
-        {z
-          ? 'AX 在你拥有的每台机器上运行代理。AXCrew 把它们连成一体——从任意节点委派，在任意机器执行，把结果带回来。'
-          : 'AX runs agents on the machines you own. AXCrew connects them — delegate from any node, run anywhere, get the result back.'}
+  <div class="container-x relative pb-20 pt-12 text-center md:pb-28 md:pt-16">
+    <Reveal>
+      <p class="label mb-7 block">
+        {z ? 'AX · AXCrew · 代理运行时' : 'AX · AXCrew · agent runtime'}
       </p>
+    </Reveal>
 
-      <div class="mt-8 flex flex-wrap justify-center gap-x-10 gap-y-3">
-        <span class="datum">
-          <a href={z ? '/zh/ax' : '/ax'} class="text-link">AX</a>&ensp;—&ensp;{z ? '每台机器上的代理运行时' : 'agent runtime on every node'}
-        </span>
-        <span class="datum">
-          <a href={z ? '/zh/crew' : '/crew'} class="text-link">AXCrew</a>&ensp;—&ensp;{z ? '整支集群的控制平面' : 'control plane for the fleet'}
-        </span>
-      </div>
-    </div>
+    <Reveal delay={60}>
+      <h1 class="display-serif-lg mx-auto max-w-[20ch] text-balance">
+        {
+          z ? (
+            <>有很多代理运行时，<br />但这一套是<span class="text-[var(--color-text-3)]">你的</span>。</>
+          ) : (
+            <>There are many agent runtimes,<br />but this one is <span class="text-[var(--color-text-3)]">yours</span>.</>
+          )
+        }
+      </h1>
+    </Reveal>
 
-    <!-- install — right after the lede, before the visual -->
-    <div class="container-reading-wide mx-auto mt-9 text-left">
-      <InstallCommand client:visible />
-      <p class="datum mt-4 text-center">
-        {z
-          ? <>装好了？<a href="/zh/docs#cli" class="text-link">直接看 CLI</a> · <a href="/zh/download" class="text-link">下载页</a></>
-          : <>already installed? <a href="/docs#cli" class="text-link">jump to the CLI</a> · <a href="/download" class="text-link">download</a></>}
+    <Reveal delay={120}>
+      <p class="mx-auto mt-7 max-w-[46ch] text-[1.0625rem] leading-relaxed text-[var(--color-text-2)]">
+        {
+          z
+            ? <>AX 是一个轻量的代理运行时内核。<br />在你的机器上跑 AX，装 AXCrew 来管它们。</>
+            : <>AX is a minimal agent runtime kernel.<br />Run AX on your machines. Add AXCrew to run them all.</>
+        }
       </p>
-    </div>
+    </Reveal>
 
-    <!-- signature visual: the fleet, live -->
-    <div class="panel-dark grid-bg mt-12">
-      <div class="hairline-dark-b flex flex-wrap items-center justify-between gap-2 bg-void-2 px-4 py-2.5">
-        <span class="mono-micro text-fog-2">{z ? '你的机器 · 每个节点都在运行 AX' : 'your machines · every node runs AX'}</span>
-        <span class="mono-micro text-fog-2">{z ? '任务 · 路由 → 执行 → 结果' : 'task · route → execute → result'}</span>
+    <Reveal delay={180}>
+      <div class="mx-auto mt-10 max-w-[42rem] text-left">
+        <InstallCommand client:visible />
       </div>
-      <div class="p-4 sm:p-6">
-        <FleetNetwork client:visible lang={lang} />
+    </Reveal>
+
+    <Reveal delay={240}>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-x-7 gap-y-2">
+        <a href={z ? '/zh/ax' : '/ax'} class="datum text-link">AX {SITE.axVersion} →</a>
+        <a href={z ? '/zh/crew' : '/crew'} class="datum text-link">AXCrew {SITE.crewVersion} →</a>
+        <a href={z ? '/zh/docs' : '/docs'} class="datum text-link">{z ? '文档' : 'docs'} →</a>
       </div>
+    </Reveal>
+  </div>
+</section>
+
+<!-- ════════════════ WHY AX — the argument ════════════════ -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <h2 class="display-serif max-w-[16ch]">
+        {z ? <>为什么是 AX？</> : <>Why AX?</>}
+      </h2>
+    </Reveal>
+
+    <div class="mt-12 grid gap-x-14 gap-y-0 md:grid-cols-2">
+      {
+        WHY.map((w, i) => (
+          <Reveal delay={(i % 2) * 70}>
+            <div class="border-t border-[var(--color-border)] py-7">
+              <h3 class="font-display text-[1.375rem] leading-snug tracking-[-0.01em] text-[var(--color-text)]">
+                {w.t}
+              </h3>
+              <p class="mt-3 max-w-[46ch] text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+                {w.d}
+              </p>
+            </div>
+          </Reveal>
+        ))
+      }
     </div>
   </div>
 </section>
 
-<!-- ============ SEND WORK WHERE IT BELONGS ============ -->
-<Section
-  id="send-work"
-  tone="dark"
-  kicker={z ? 'send work where it belongs' : 'send work where it belongs'}
-  title={z ? '一个请求。它自己去对的地方。' : 'One request. It finds the right machine.'}
-  lead={z
-    ? '请求从笔记本进入：代码在这里写好，构建被路由到服务器，基准测试交给 GPU 机器——结果回到发起请求的那台机器。每台机器只做自己擅长的事，AXCrew 负责搬运。'
-    : 'A request enters on the laptop: code is written here, the build is routed to the server, the benchmark runs on the GPU box — and the result comes back to the machine that asked. Every machine does what it is best at; AXCrew moves the work.'}
+<!-- ════════════════ 01 · CONTEXT ════════════════ -->
+<ScrollSection
+  kicker={z ? '01 · 上下文' : '01 · context'}
+  title={z ? '上下文按预算选，不按条数' : 'Context is chosen by budget, not by count'}
 >
-  <SendWork lang={lang} />
-  <p class="datum mt-8">
-    {z
-      ? '路由 · 出站 WSS · 设备只出站连接'
-      : 'routing · outbound WSS · devices connect out only'}
-  </p>
-</Section>
+  <TermPanel slot="demo" title="ax · context" meta={z ? '会话中' : 'live'}>
+    <p class="text-[var(--color-void-text-2)]">$ ax run "add the missing sort tests"</p>
+    <div class="mt-3 space-y-1">
+      <p><span class="text-[var(--color-void-text-2)]">▸ </span>budget&nbsp;&nbsp;derived from model window − reserve</p>
+      <p><span class="text-[var(--color-void-text-2)]">▸ </span>select&nbsp;&nbsp;token-aware, most relevant first</p>
+      <p><span class="text-[var(--color-void-text-2)]">▸ </span>history&nbsp;never deleted, only re-fed</p>
+      <p class="pt-2 text-[var(--color-accent-muted)]">✓ compaction changes what the model sees</p>
+    </div>
+  </TermPanel>
 
-<!-- ============ CONTROL EVERY MACHINE ============ -->
-<Section
-  id="control"
-  kicker={z ? 'control every machine' : 'control every machine'}
-  title={z ? '整个集群，装进口袋。' : 'The whole fleet, in your pocket.'}
-  lead={z
-    ? 'AXCrew 住在你的桌面端和手机里：一个视图看尽每个节点、每个任务、每条事件。手机观察与审批，桌面调度与排程。'
-    : 'AXCrew lives on your desktop and in your phone: one view of every node, task and event. Observe and approve from the phone, schedule from the desk.'}
->
-  <CrewUI lang={lang} />
-</Section>
+  <div slot="body">
+    <p>
+      {
+        z
+          ? <>内核按 token 预算挑选上下文——绝不是固定的消息条数，也不是窗口的某个固定比例。预算从模型的真实窗口推导出来。</>
+          : <>The kernel selects context by token budget — never a fixed message count, and never a fixed fraction of the window. The budget is derived from the model&rsquo;s real window.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>压缩只改变喂给模型的内容。原始历史永不删除，它会一直留在本地会话里，随时可以重新检索。</>
+          : <>Compaction only changes what gets fed to the model. Raw history is never deleted — it stays in the local session and can be re-selected later.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>长任务会保留一份持久 Task Queue，每轮只注入一个紧凑的 <code class="chip">[ax-progress]</code> 状态，而不是把整个队列塞进上下文。</>
+          : <>Long tasks keep a durable Task Queue. Each turn injects only a compact <code class="chip">[ax-progress]</code> state instead of the whole queue.</>
+      }
+    </p>
+  </div>
+</ScrollSection>
 
-<!-- ============ CONNECTED. NOT MERGED. ============ -->
-<Section
-  id="boundaries"
-  tone="paper2"
-  kicker={z ? 'boundaries' : 'boundaries'}
-  title={z ? '互联，但不合并。' : 'Connected. Not merged.'}
-  lead={z
-    ? '每台机器都保持自己的边界：自己的工作区、自己的沙箱、自己的权限、自己的身份。AXCrew 在它们之间路由——从不把它们合并成一个。'
-    : 'Every machine keeps its own boundary: its workspace, its sandbox, its permissions, its identity. AXCrew routes between them — it never merges them.'}
+<!-- ════════════════ 02 · TOOLS & PERMISSIONS ════════════════ -->
+<ScrollSection
+  flip
+  kicker={z ? '02 · 工具与权限' : '02 · tools & permissions'}
+  title={z ? '权限是声明的，不是猜的' : 'Permissions are declared, not guessed'}
 >
-  <Boundaries lang={lang} />
-</Section>
+  <TermPanel slot="demo" title="ax · permission" meta={z ? '等待确认' : 'awaiting'}>
+    <p class="text-[var(--color-void-text-2)]">shell · cargo test --workspace</p>
+    <div class="mt-3 space-y-2">
+      <p class="text-[var(--color-void-text)]">[1] allow once</p>
+      <p class="text-[var(--color-void-text)]">[2] allow for session</p>
+      <p class="text-[var(--color-void-text)]">[3] deny</p>
+      <p class="text-[var(--color-void-text)]">[4] deny always</p>
+    </div>
+    <p class="mt-3 border-t border-[var(--color-void-border)] pt-3 text-[var(--color-void-text-2)]">
+      deny &gt; ask &gt; allow
+    </p>
+  </TermPanel>
+
+  <div slot="body">
+    <p>
+      {
+        z
+          ? <>每个工具自己返回 <code class="chip">ToolPermission</code>，包含 capability 与 safety。运行时从不根据工具名字猜测权限。</>
+          : <>Every tool returns its own <code class="chip">ToolPermission</code> with a capability and a safety level. The runtime never infers permissions from a tool&rsquo;s name.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>重叠规则按 <strong>deny &gt; ask &gt; allow</strong> 解析，与书写顺序无关。会话级授权可以把一次 Ask 临时升级为允许。</>
+          : <>Overlapping rules resolve as <strong>deny &gt; ask &gt; allow</strong>, independent of the order they were written. A session grant can temporarily upgrade an Ask to an allow.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>shell 与未知影响的工具持有独占租约；声明了只读影响的工具可以并发执行。默认并发 4，上限 64。</>
+          : <>Shell and unknown-effect tools hold an exclusive lease; tools that declare read-only effects run concurrently. Concurrency defaults to 4, capped at 64.</>
+      }
+    </p>
+  </div>
+</ScrollSection>
+
+<!-- ════════════════ 03 · DURABILITY ════════════════ -->
+<ScrollSection
+  kicker={z ? '03 · 持久性' : '03 · durability'}
+  title={z ? '会话跨重启继续，从不重跑' : 'Sessions resume across restarts, never re-run'}
+>
+  <TermPanel slot="demo" title="ax · session" meta={z ? '已恢复' : 'resumed'}>
+    <p class="text-[var(--color-void-text-2)]">$ ax run --session &lt;id&gt; "keep going"</p>
+    <div class="mt-3 space-y-1">
+      <p><span class="text-[var(--color-void-text-2)]">▸ </span>restore&nbsp;&nbsp;messages · tool results · tasks</p>
+      <p><span class="text-[var(--color-void-text-2)]">▸ </span>checkpoint&nbsp;written before advancing</p>
+      <p><span class="text-[var(--color-void-text-2)]">▸ </span>replay&nbsp;&nbsp;completed steps are skipped</p>
+      <p class="pt-2 text-[var(--color-accent-muted)]">✓ session restored</p>
+    </div>
+    <p class="mt-3 border-t border-[var(--color-void-border)] pt-3 text-[var(--color-void-text-2)]">
+      ax export backup.axpack<br />ax import backup.axpack --dry-run
+    </p>
+  </TermPanel>
+
+  <div slot="body">
+    <p>
+      {
+        z
+          ? <>每条消息与工具结果都在执行推进之前落盘。会话跨重启恢复，已经完成的工作绝不重跑。</>
+          : <>Every message and tool result is written before execution advances. Sessions resume across restarts, and finished work is never re-run.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>SQLite 保存会话与消息仓储；每条会话还有一份追加式 JSONL 事件流，作为权威记录。</>
+          : <>SQLite holds the session and message repository, and each session also has an append-only JSONL event stream that stays authoritative.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>持久数据在安装目录的 <code class="chip">.ax</code> 下，每个项目一个独立存储。打开别的目录不会搬走你的数据。</>
+          : <>Persistent data lives under <code class="chip">.ax</code> in the install directory, with a separate store per project. Opening another directory never moves your data.</>
+      }
+    </p>
+  </div>
+</ScrollSection>
+
+<!-- ════════════════ 04 · SKILLS, MCP, MEMORY ════════════════ -->
+<ScrollSection
+  flip
+  kicker={z ? '04 · 能力' : '04 · capabilities'}
+  title={z ? '技能、MCP 与记忆，命中才加载' : 'Skills, MCP and memory load only on a hit'}
+>
+  <TermPanel slot="demo" title="ax · capabilities" meta={z ? '惰性加载' : 'lazy'}>
+    <p class="text-[var(--color-void-text-2)]">$ ax</p>
+    <div class="mt-3 space-y-1">
+      <p><span class="text-[var(--color-void-text-2)]">skills&nbsp;&nbsp;</span>indexed for routing, bodies on hit</p>
+      <p><span class="text-[var(--color-void-text-2)]">mcp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>dormant until a tool is invoked</p>
+      <p><span class="text-[var(--color-void-text-2)]">memory&nbsp;&nbsp;</span>retrieved on demand, not at startup</p>
+      <p><span class="text-[var(--color-void-text-2)]">provider</span>connected when a turn needs it</p>
+    </div>
+    <p class="mt-3 border-t border-[var(--color-void-border)] pt-3 text-[var(--color-void-text-2)]">
+      $AX_HOME/skills/&lt;name&gt;/SKILL.md
+    </p>
+  </TermPanel>
+
+  <div slot="body">
+    <p>
+      {
+        z
+          ? <>技能是 <code class="chip">SKILL.md</code> 包，按词法路由，与语言无关。命中的技能才加载正文与资源——不需要一次模型调用来决定是否启用。</>
+          : <>Skills are <code class="chip">SKILL.md</code> packages with language-independent lexical routing. A skill&rsquo;s body and resources load only when a route hits — no model call is spent deciding whether to enable one.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>MCP 支持 stdio、Streamable HTTP 与 WebSocket 三种传输。服务器在被调用前保持休眠，远端工具对模型来说就是普通工具。</>
+          : <>MCP supports stdio, Streamable HTTP and WebSocket. Servers stay dormant until invoked, and remote tools become ordinary tools to the model.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>记忆分全局、项目、会话三层作用域，存在 SQLite 里。没有向量库，也不需要额外的模型调用。能力定义全局加载后再叠加项目覆盖。</>
+          : <>Memory has global, project and session scopes in SQLite. No vector store, no extra model call. Capability definitions load globally, then project definitions apply on top.</>
+      }
+    </p>
+  </div>
+</ScrollSection>
+
+<!-- ════════════════ 05 · PROVIDERS ════════════════ -->
+<ScrollSection
+  kicker={z ? '05 · 模型' : '05 · models'}
+  title={z ? '提供方中立，随时换模型' : 'Provider-neutral, switch models at will'}
+>
+  <TermPanel slot="demo" title="ax · /model" meta={z ? '已发现' : 'discovered'}>
+    <div class="space-y-1">
+      <p class="text-[var(--color-void-text-2)]">discovered providers</p>
+      <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
+        <p>Anthropic</p>
+        <p>OpenAI-compatible</p>
+        <p>Gemini</p>
+        <p>Vertex</p>
+        <p>Bedrock</p>
+        <p>Codex OAuth</p>
+        <p>WorkBuddy</p>
+        <p class="text-[var(--color-void-text-2)]">local models…</p>
+      </div>
+    </div>
+    <p class="mt-3 border-t border-[var(--color-void-border)] pt-3 text-[var(--color-void-text-2)]">
+      /model provider/model-id
+    </p>
+  </TermPanel>
+
+  <div slot="body">
+    <p>
+      {
+        z
+          ? <>模型目录从 <code class="chip">&lt;install-dir&gt;/.ax/models/</code> 动态发现：内置目录加上探测到的提供方。认证走 API key 或 OAuth。</>
+          : <>The model catalog is discovered dynamically into <code class="chip">&lt;install-dir&gt;/.ax/models/</code>: a bundled catalog plus whatever providers are detected. Authentication is by API key or OAuth.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>在会话中用 <code class="chip">/model</code> 换模型，也可以直接指定 <code class="chip">/model provider/model-id</code>。推理能力按模型发布，不会越权声明。</>
+          : <>Switch models mid-session with <code class="chip">/model</code>, or name one directly as <code class="chip">/model provider/model-id</code>. Reasoning capability is published per model and never over-claimed.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>要接入本地模型，实现 <code class="chip">ModelProvider</code> trait 即可——内核其余部分不需要改动。</>
+          : <>To add a local model, implement the <code class="chip">ModelProvider</code> trait. Nothing else in the kernel needs to change.</>
+      }
+    </p>
+  </div>
+</ScrollSection>
+
+<!-- ════════════════ 06 · AXCREW ════════════════ -->
+<ScrollSection
+  flip
+  kicker={z ? '06 · 控制平面' : '06 · control plane'}
+  title={z ? '把多台机器上的 AX 连起来' : 'Connect the AX running on every machine'}
+>
+  <TermPanel slot="demo" title="ax crew" meta={z ? '已连接' : 'connected'}>
+    <p class="text-[var(--color-void-text-2)]">$ ax crew pair &lt;code&gt; --gateway &lt;url&gt;</p>
+    <p class="mt-1 text-[var(--color-void-text-2)]">$ ax crew connect &lt;url&gt;</p>
+    <div class="mt-3 space-y-1">
+      <p><span class="text-[var(--color-void-text-2)]">▸ </span>Ed25519 challenge signed locally</p>
+      <p><span class="text-[var(--color-void-text-2)]">▸ </span>outbound WSS · heartbeats · backoff</p>
+      <p class="pt-2 text-[var(--color-accent-muted)]">✓ device added to fleet</p>
+    </div>
+    <p class="mt-3 border-t border-[var(--color-void-border)] pt-3 text-[var(--color-void-text-2)]">
+      private key never leaves the device<br />no inbound port · no ssh
+    </p>
+  </TermPanel>
+
+  <div slot="body">
+    <p>
+      {
+        z
+          ? <>AXCrew 是一个 Rust 控制平面：配上你已经装好的 AX，在它们之间调度工作。桌面端与 Android 客户端走同一套 REST / WebSocket API。</>
+          : <>AXCrew is a Rust control plane: it pairs the AX installs you already have and schedules work across them. Desktop and Android clients speak the same REST / WebSocket API.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>设备只出站连接，带心跳与退避重连。不需要入站端口，也不需要 SSH——这让 NAT 后面的机器同样能加入。</>
+          : <>Devices connect out, with heartbeats and backoff. No inbound port and no SSH — which is what lets a machine behind NAT join the fleet.</>
+      }
+    </p>
+    <p>
+      {
+        z
+          ? <>每个 AX 实例是独立的：自己的模型、技能、记忆与权限。AXCrew 只路由任务与事件，从不伸进任何一个实例的状态。</>
+          : <>Each AX instance is independent: its own model, skills, memory and permissions. AXCrew routes tasks and events and never reaches into an instance&rsquo;s state.</>
+      }
+    </p>
+  </div>
+</ScrollSection>
+
+<!-- ════════════════ CLOSE ════════════════ -->
+<section>
+  <div class="container-x py-24 text-center md:py-32">
+    <Reveal>
+      <h2 class="display-serif mx-auto max-w-[18ch] text-balance">
+        {z ? <>装一个二进制，然后开始。 </> : <>One binary. Then get to work.</>}
+      </h2>
+      <p class="mx-auto mt-6 max-w-[44ch] text-[1.0625rem] leading-relaxed text-[var(--color-text-2)]">
+        {
+          z
+            ? '会话、记忆、凭据与模型配置都存在这台机器上。'
+            : 'Sessions, memory, credentials and model config all stay on this machine.'
+        }
+      </p>
+      <div class="mx-auto mt-10 max-w-[42rem] text-left">
+        <InstallCommand client:visible />
+      </div>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-x-7 gap-y-2">
+        <a href={z ? '/zh/ax' : '/ax'} class="datum text-link">AX →</a>
+        <a href={z ? '/zh/crew' : '/crew'} class="datum text-link">AXCrew →</a>
+        <a href={z ? '/zh/docs' : '/docs'} class="datum text-link">{z ? '文档 →' : 'docs →'}</a>
+      </div>
+    </Reveal>
+  </div>
+</section>

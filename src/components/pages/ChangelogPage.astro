@@ -1,7 +1,8 @@
 ---
 /**
- * Changelog page — AX + AXCrew release notes. Bilingual.
+ * Changelog page — AX + AXCrew release notes, side by side. Bilingual.
  */
+import Reveal from '../../components/Reveal.astro';
 import PageHero from '../../components/PageHero.astro';
 import { CHANGELOG } from '../../lib/content';
 import { SITE } from '../../lib/site';
@@ -14,61 +15,89 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
 
-const ax = CHANGELOG.filter((e) => e.product === 'AX');
+const ax   = CHANGELOG.filter((e) => e.product === 'AX');
 const crew = CHANGELOG.filter((e) => e.product === 'AXCrew');
 ---
 
 <PageHero
   kicker={z ? '更新记录' : 'Changelog'}
   title={z ? '改了什么。' : 'What changed.'}
-  lead={z ? '从仓库发布说明与历史编译而来——每次行为变更一行，而不是每次提交一行。' : 'Compiled from repository release notes and history — one line per behavior change, not per commit.'}
-  meta={[`ax v${SITE.axVersion}`, `axcrew v${SITE.crewVersion}`, 'compiled 2026-10-05']}
+  lead={z
+    ? '从仓库发布说明与历史编译而来——每次行为变更一行。'
+    : 'Compiled from repository release notes — one line per behaviour change.'}
+  meta={[`AX v${SITE.axVersion}`, `AXCrew v${SITE.crewVersion}`]}
 />
 
-<section class="bg-paper">
-  <div class="container-x section-pad pt-0">
+<section class="bg-[var(--color-bg)]">
+  <div class="container-x section-y">
     <div class="grid gap-12 lg:grid-cols-2">
-      <div class="hairline border-line">
-        <div class="border-b border-line bg-paper-2 px-4 py-2.5 sm:px-5">
-          <span class="mono-micro">AX — {z ? '代理运行时' : 'agent runtime'}</span>
-        </div>
-        {
-          ax.map((e) => (
-            <div class="border-b border-line px-4 py-5 transition-colors duration-200 hover:bg-paper-2 sm:px-5">
-              <p class="font-mono text-[0.8125rem] font-medium text-ink">v{e.version}</p>
-              <ul class="mt-2 space-y-1">
-                {e.entries.map((x) => (
-                  <li class="datum">{x[lang]}</li>
-                ))}
-              </ul>
-            </div>
-          ))
-        }
-      </div>
 
-      <div class="hairline border-line">
-        <div class="border-b border-line bg-paper-2 px-4 py-2.5 sm:px-5">
-          <span class="mono-micro">AXCrew — {z ? '控制平面' : 'control plane'}</span>
+      <!-- AX -->
+      <Reveal>
+        <div>
+          <div class="border-b border-[var(--color-border)] bg-[var(--color-bg-raised)] px-5 py-3">
+            <span class="mono-micro">AX — {z ? '代理运行时' : 'agent runtime'}</span>
+          </div>
+          <div class="divide-y divide-[var(--color-border)] border border-t-0 border-[var(--color-border)]">
+            {
+              ax.map((e) => (
+                <div class="px-5 py-5">
+                  <p class="font-mono text-[0.8125rem] font-semibold text-[var(--color-text)]">v{e.version}</p>
+                  <ul class="mt-2.5 space-y-2">
+                    {e.entries.map((x) => (
+                      <li class="flex gap-2.5 text-sm leading-relaxed">
+                        <span class="mt-[0.45em] h-1 w-1 shrink-0 rounded-full bg-[var(--color-text-3)]"></span>
+                        <span class="text-[var(--color-text-2)]">{x[lang]}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            }
+          </div>
         </div>
-        {
-          crew.map((e) => (
-            <div class="border-b border-line px-4 py-5 transition-colors duration-200 hover:bg-paper-2 sm:px-5">
-              <p class="font-mono text-[0.8125rem] font-medium text-ink">v{e.version}</p>
-              <ul class="mt-2 space-y-1">
-                {e.entries.map((x) => (
-                  <li class="datum">{x[lang]}</li>
-                ))}
-              </ul>
-            </div>
-          ))
-        }
-      </div>
+      </Reveal>
+
+      <!-- AXCrew -->
+      <Reveal delay={80}>
+        <div>
+          <div class="border-b border-[var(--color-border)] bg-[var(--color-bg-raised)] px-5 py-3">
+            <span class="mono-micro">AXCrew — {z ? '控制平面' : 'control plane'}</span>
+          </div>
+          <div class="divide-y divide-[var(--color-border)] border border-t-0 border-[var(--color-border)]">
+            {
+              crew.map((e) => (
+                <div class="px-5 py-5">
+                  <p class="font-mono text-[0.8125rem] font-semibold text-[var(--color-text)]">v{e.version}</p>
+                  <ul class="mt-2.5 space-y-2">
+                    {e.entries.map((x) => (
+                      <li class="flex gap-2.5 text-sm leading-relaxed">
+                        <span class="mt-[0.45em] h-1 w-1 shrink-0 rounded-full bg-[var(--color-text-3)]"></span>
+                        <span class="text-[var(--color-text-2)]">{x[lang]}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </Reveal>
+
     </div>
 
-    <div class="mt-14 flex flex-wrap gap-x-10 gap-y-3">
-      <span class="datum">{z ? '完整说明 · ' : 'full notes · '}<code class="font-mono text-xs">ax/docs/release-notes</code></span>
-      <span class="datum">{z ? '快照 · ' : 'snapshots · '}<code class="font-mono text-xs">axcrew/docs/releases</code></span>
-      <a href={z ? '/zh/docs' : '/docs'} class="mono-micro text-link">{z ? '文档 →' : 'docs →'}</a>
-    </div>
+    <Reveal delay={100}>
+      <div class="mt-12 flex flex-wrap gap-x-8 gap-y-3 border-t border-[var(--color-border)] pt-8">
+        <span class="datum">
+          {z ? '完整说明 · ' : 'full notes · '}
+          <code class="font-mono text-xs">ax/docs/release-notes</code>
+        </span>
+        <span class="datum">
+          {z ? '快照 · ' : 'snapshots · '}
+          <code class="font-mono text-xs">axcrew/docs/releases</code>
+        </span>
+        <a href={z ? '/zh/docs' : '/docs'} class="mono-micro text-link">{z ? '文档 →' : 'docs →'}</a>
+      </div>
+    </Reveal>
   </div>
 </section>

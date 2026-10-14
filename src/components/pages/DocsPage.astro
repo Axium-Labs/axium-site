@@ -1,7 +1,8 @@
 ---
 /**
- * Docs page — essentials index. Bilingual.
+ * Docs page — essentials index with a sticky sidebar and scroll reveals.
  */
+import Reveal from '../../components/Reveal.astro';
 import PageHero from '../../components/PageHero.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import { DOCS_SECTIONS } from '../../lib/content';
@@ -17,45 +18,70 @@ const z = lang === 'zh';
 
 <PageHero
   kicker={z ? '文档' : 'Docs'}
-  title={z ? '短文，真实行为。' : 'Short documents, real behavior.'}
+  title={z ? '短文，真实行为。' : 'Short documents, real behaviour.'}
   lead={z
-    ? '完整的分版本文档在仓库里——ax/docs 与 axcrew/docs。这个索引承载要点，保持同样的语气。'
-    : 'The full, versioned documentation lives in the repositories — ax/docs and axcrew/docs. This index carries the essentials, kept in the same voice.'}
+    ? '完整的分版本文档在仓库里——ax/docs 与 axcrew/docs。这里是要点索引，保持同样的语气：每一项都能在代码里找到对应实现。'
+    : 'The full, versioned documentation lives in the repositories — ax/docs and axcrew/docs. This is an essentials index in the same voice: every entry maps to something the code actually does.'}
 />
 
-<section class="bg-paper">
-  <div class="container-x section-pad pt-0">
-    <div class="grid gap-12 lg:grid-cols-[16rem_minmax(0,1fr)]">
+<section class="bg-[var(--color-bg)]">
+  <div class="container-x py-16 md:py-20">
+    <div class="grid gap-14 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-20">
+
+      <!-- sticky sidebar -->
       <aside class="hidden lg:block">
-        <nav class="sticky top-28 space-y-1" aria-label="Docs sections">
-          {
-            DOCS_SECTIONS.map((s) => (
-              <a href={`#${s.id}`} class="block border-l border-line px-3 py-1 font-mono text-xs text-ink-2 transition-colors duration-200 hover:border-ink hover:text-ink">
-                {s.title[lang]}
-              </a>
-            ))
-          }
+        <nav class="sticky top-24" aria-label={z ? '文档章节' : 'docs sections'}>
+          <p class="label mb-4 block">{z ? '目录' : 'contents'}</p>
+          <ul class="space-y-0.5 border-l border-[var(--color-border)]">
+            {
+              DOCS_SECTIONS.map((s) => (
+                <li>
+                  <a
+                    href={`#${s.id}`}
+                    class="block border-l-2 border-transparent py-1.5 pl-4 text-[0.8125rem] text-[var(--color-text-3)] transition-colors duration-150 hover:border-[var(--color-text)] hover:text-[var(--color-text)]"
+                  >
+                    {s.title[lang]}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
         </nav>
       </aside>
 
-      <article class="min-w-0">
+      <!-- content -->
+      <article class="min-w-0 max-w-2xl">
         {
           DOCS_SECTIONS.map((s, i) => (
-            <div id={s.id} class="scroll-mt-28 hairline-b py-10 first:pt-0">
-              <div class="flex items-baseline gap-4">
-                <span class="mono-micro shrink-0 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
-                <h2 class="h3">{s.title[lang]}</h2>
-              </div>
-              <p class="mt-4 max-w-2xl text-[0.9375rem] leading-relaxed text-ink-2">{s.body[lang]}</p>
-              {s.code && (
-                <div class="mt-5 max-w-2xl">
-                  <CodeBlock code={s.code} label={s.id} lang="sh" />
+            <Reveal delay={20}>
+              <div id={s.id} class="scroll-mt-24 border-t border-[var(--color-border)] py-10 first:border-t-0 first:pt-0">
+                <div class="mb-4 flex items-baseline gap-3">
+                  <span class="mono-micro shrink-0 tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+                  <h2 class="h3">{s.title[lang]}</h2>
                 </div>
-              )}
-            </div>
+                <p class="text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">{s.body[lang]}</p>
+                {s.code && (
+                  <div class="mt-5">
+                    <CodeBlock code={s.code} label={s.id} />
+                  </div>
+                )}
+              </div>
+            </Reveal>
           ))
         }
-        <p class="mono-micro py-8">{z ? '完 · 更多在仓库 · ax/docs 与 axcrew/docs' : 'end · more in the repositories · ax/docs & axcrew/docs'}</p>
+
+        <Reveal>
+          <div class="border-t border-[var(--color-border)] pt-10">
+            <p class="text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+              {z
+                ? '每个主题一个文件，互相交叉引用而不是重复。完整的架构决策记录在 ax/docs/adr。'
+                : 'One topic per file, cross-referenced instead of duplicated. Architecture decisions with lasting consequences are recorded in ax/docs/adr.'}
+            </p>
+            <p class="dataset mt-4 font-mono text-[0.75rem] text-[var(--color-text-3)]">
+              ax/docs &nbsp;·&nbsp; axcrew/docs
+            </p>
+          </div>
+        </Reveal>
       </article>
     </div>
   </div>

@@ -1,11 +1,9 @@
 ---
 /**
- * CrewUI — the real AXCrew product surfaces: the desktop app
- * (devices / tasks / live events) and the Android control client
- * (tasks / approvals). Static product UI mock — hairline, monochrome,
- * no truncated mid-word text, no half-empty panels.
+ * CrewUI — how AXCrew actually works: it orchestrates AX instances,
+ * not hardware. Each row is an independent AX (its own model, skills,
+ * memory, permissions); AXCrew schedules across them and brokers approvals.
  */
-import { CREW_UI } from '../lib/topology';
 import type { Lang } from '../lib/i18n';
 
 interface Props {
@@ -14,140 +12,180 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
-const d = CREW_UI.desktop;
-const m = CREW_UI.mobile;
+
+/* one AX instance = one independent agent runtime */
+const INSTANCES = z
+  ? [
+      { name: 'ax · dev',     runs: '本机 · wsl',    model: 'gpt-5',        state: 'idle',    work: '空闲 · 就绪' },
+      { name: 'ax · build',   runs: '构建机',        model: 'claude-4.5',   state: 'running', work: 'cargo test --lib sort' },
+      { name: 'ax · bench',   runs: 'GPU 机器',      model: 'gpt-5',        state: 'running', work: 'cargo bench --bench sort' },
+      { name: 'ax · remote',  runs: '云虚拟机',      model: 'deepseek-v3',  state: 'offline', work: '离线' },
+    ]
+  : [
+      { name: 'ax · dev',    runs: 'local · wsl',  model: 'gpt-5',       state: 'idle',    work: 'idle · ready' },
+      { name: 'ax · build',  runs: 'build box',    model: 'claude-4.5',  state: 'running', work: 'cargo test --lib sort' },
+      { name: 'ax · bench',  runs: 'GPU box',      model: 'gpt-5',       state: 'running', work: 'cargo bench --bench sort' },
+      { name: 'ax · remote', runs: 'cloud VM',     model: 'deepseek-v3', state: 'offline', work: 'offline' },
+    ];
+
+const STATE_TONE: Record<string, string> = {
+  running: 'text-[var(--color-ok)]',
+  idle:    'text-[var(--color-text-3)]',
+  offline: 'text-[var(--color-text-3)]',
+};
+
+/* what AXCrew does with those instances */
+const ORCHESTRATION = z
+  ? [
+      { t: '派发', d: '按能力与资源把任务放到某个 AX 实例。' },
+      { t: '隔离', d: '每个实例有自己的模型、技能、记忆与权限。' },
+      { t: '审批', d: '权限请求汇到控制面，由你批准或拒绝。' },
+      { t: '恢复', d: '实例掉线后，任务按租约重新分配。' },
+    ]
+  : [
+      { t: 'Dispatch',  d: 'Place a task on an AX instance by capability and resources.' },
+      { t: 'Isolate',   d: 'Each instance has its own model, skills, memory and permissions.' },
+      { t: 'Approve',   d: 'Permission requests reach the control plane for your decision.' },
+      { t: 'Recover',   d: 'When an instance drops, the task is re-assigned by lease.' },
+    ];
+
+/* pending approvals on the control plane */
+const APPROVALS = z
+  ? [
+      { req: 'filesystem · write tests/sort_test.rs', from: 'ax · dev' },
+      { req: 'shell · cargo test --lib sort',         from: 'ax · build' },
+    ]
+  : [
+      { req: 'filesystem · write tests/sort_test.rs', from: 'ax · dev' },
+      { req: 'shell · cargo test --lib sort',         from: 'ax · build' },
+    ];
 ---
 
-<div class="grid items-end gap-8 lg:grid-cols-[1.55fr_0.85fr] lg:gap-12">
-  <!-- ============ desktop app ============ -->
-  <div class="panel-dark">
-    <!-- window chrome -->
-    <div class="hairline-dark-b flex items-center justify-between gap-3 bg-void-2 px-4 py-2.5">
-      <span class="flex items-center gap-1.5">
-        <span class="h-2 w-2 rounded-full bg-line-dark-2"></span>
-        <span class="h-2 w-2 rounded-full bg-line-dark-2"></span>
-        <span class="h-2 w-2 rounded-full bg-line-dark-2"></span>
-      </span>
-      <span class="mono-micro text-fog-2">AXCrew</span>
-      <span class="mono-micro shrink-0 text-fog-2">
-        <span class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-ok align-middle"></span>
-        {z ? '4 台设备在线' : '4 devices online'}
-      </span>
+<div class="grid gap-px overflow-hidden border border-[var(--color-border)] bg-[var(--color-border)] lg:grid-cols-[1.5fr_1fr]">
+
+  <!-- ── the orchestrated AX instances ── -->
+  <div class="bg-[var(--color-bg)]">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3">
+      <span class="mono-micro">{z ? 'AX 实例 · 由 AXCrew 编排' : 'ax instances · orchestrated by axcrew'}</span>
+      <span class="mono-micro">{z ? '4 个实例' : '4 instances'}</span>
     </div>
 
-    <div class="flex">
-      <!-- left rail -->
-      <nav class="hairline-dark-r hidden shrink-0 flex-col gap-0.5 border-r border-line-dark bg-void-2 p-3 sm:flex" aria-label={z ? '应用导航' : 'app nav'}>
-        {
-          d.nav.map((n, i) => (
-            <span class:list={['mono-micro w-20 px-2 py-1.5', i === 0 ? 'bg-void text-fog' : 'text-fog-2']}>
-              {n.label[lang]}
-            </span>
-          ))
-        }
-      </nav>
+    <!-- column headers -->
+    <div class="hidden grid-cols-[1fr_auto] gap-4 border-b border-[var(--color-border)] bg-[var(--color-bg-raised)] px-5 py-2.5 sm:grid">
+      <span class="mono-micro">{z ? '实例 · 运行位置 · 模型' : 'instance · host · model'}</span>
+      <span class="mono-micro">{z ? '当前工作' : 'current work'}</span>
+    </div>
 
-      <!-- main column -->
-      <div class="min-w-0 flex-1">
-        <!-- two-pane header: devices | tasks -->
-        <div class="grid grid-cols-2">
-          <div class="hairline-dark-r border-r border-line-dark">
-            <p class="mono-micro bg-void-2 px-4 py-2 text-fog-2">{z ? '设备' : 'devices'}</p>
-            <ul class="divide-y divide-line-dark">
-              {
-                d.devices.map((dev) => (
-                  <li class="flex items-center gap-2.5 px-4 py-2.5">
-                    <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-ok"></span>
-                    <span class="truncate font-mono text-xs text-fog">{dev.name[lang]}</span>
-                    <span class="mono-micro ml-auto hidden truncate text-fog-2/70 md:inline">{dev.task[lang]}</span>
-                  </li>
-                ))
-              }
-            </ul>
-          </div>
-          <div>
-            <p class="mono-micro bg-void-2 px-4 py-2 text-fog-2">{z ? '任务' : 'tasks'}</p>
-            <ul class="divide-y divide-line-dark">
-              {
-                d.tasks.map((t) => (
-                  <li class="flex items-baseline justify-between gap-3 px-4 py-2.5">
-                    <span class="min-w-0">
-                      <span class="block truncate font-mono text-xs text-fog">{t.title[lang]}</span>
-                      <span class="mono-micro block truncate text-fog-2/70">{t.node[lang]}</span>
+    <ul>
+      {
+        INSTANCES.map((inst) => {
+          const isOffline = inst.state === 'offline';
+          return (
+            <li class="border-b border-[var(--color-border)] px-5 py-4 last:border-b-0">
+              <div class="flex items-baseline justify-between gap-4">
+                {/* identity */}
+                <div class="min-w-0">
+                  <div class="flex items-baseline gap-2.5">
+                    <span
+                      class:list={[
+                        'font-mono text-[0.8125rem] font-medium',
+                        isOffline ? 'text-[var(--color-text-3)]' : 'text-[var(--color-text)]',
+                      ]}
+                    >
+                      {inst.name}
                     </span>
-                    <span class="mono-micro shrink-0 text-ok">{t.status[lang]}</span>
-                  </li>
-                ))
-              }
-            </ul>
-          </div>
-        </div>
+                    <span class:list={['h-1.5 w-1.5 shrink-0 rounded-full', inst.state === 'running' ? 'bg-[var(--color-ok)]' : inst.state === 'idle' ? 'bg-[var(--color-border-strong)]' : 'bg-[var(--color-border)]']} />
+                  </div>
+                  <p class="mono-micro mt-1">
+                    {inst.runs} &nbsp;·&nbsp; {inst.model}
+                  </p>
+                </div>
 
-        <!-- event stream — spans the full main column -->
-        <div class="hairline-dark-t border-t border-line-dark">
-          <div class="flex items-center justify-between bg-void-2 px-4 py-2">
-            <span class="mono-micro text-fog-2">{z ? '实时事件' : 'live events'}</span>
-            <span class="mono-micro text-fog-2">
-              <span class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-ok align-middle"></span>
-              {z ? '流式' : 'streaming'}
-            </span>
-          </div>
-          <ul class="divide-y divide-line-dark">
-            {d.events.map((e) => (
-              <li class="term truncate px-4 py-1.5 text-fog-2">{e.line}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
+                {/* work */}
+                <div class="min-w-0 text-right">
+                  <p
+                    class:list={[
+                      'truncate font-mono text-[0.75rem]',
+                      isOffline ? 'text-[var(--color-text-3)]' : 'text-[var(--color-text-2)]',
+                    ]}
+                  >
+                    {inst.work}
+                  </p>
+                  <p class:list={['mono-micro mt-1', STATE_TONE[inst.state]]}>
+                    {inst.state}
+                  </p>
+                </div>
+              </div>
+            </li>
+          );
+        })
+      }
+    </ul>
 
-  <!-- ============ mobile client ============ -->
-  <div class="mx-auto w-full max-w-[17.5rem]">
-    <div class="panel-dark">
-      <div class="hairline-dark-b flex items-center justify-between bg-void-2 px-4 py-3">
-        <span class="font-mono text-xs font-medium text-fog">{m.header[lang]}</span>
-        <span class="h-1.5 w-1.5 rounded-full bg-ok"></span>
-      </div>
-
-      <div class="hairline-dark-b flex gap-5 bg-void-2 px-4 py-2">
+    <!-- orchestration: what Crew does across them -->
+    <div class="border-t border-[var(--color-border)] bg-[var(--color-bg-raised)] p-5">
+      <p class="mono-micro mb-4">{z ? 'AXCrew 在做的四件事' : 'what axcrew does across them'}</p>
+      <div class="grid gap-4 sm:grid-cols-2">
         {
-          m.sections.map((s, i) => (
-            <span class:list={['mono-micro', i === 1 ? 'text-fog' : 'text-fog-2']}>{s.label[lang]}</span>
+          ORCHESTRATION.map((o) => (
+            <div>
+              <p class="text-[0.8125rem] font-medium text-[var(--color-text)]">{o.t}</p>
+              <p class="mt-0.5 text-[0.75rem] leading-relaxed text-[var(--color-text-2)]">{o.d}</p>
+            </div>
           ))
         }
       </div>
-
-      <div class="p-4">
-        <p class="mono-micro text-fog-2">{z ? '任务 · 2' : 'tasks · 2'}</p>
-        <ul class="mt-2.5 space-y-3">
-          {
-            m.tasks.map((t) => (
-              <li>
-                <p class="truncate font-mono text-xs text-fog">{t.title[lang]}</p>
-                <p class="mono-micro mt-0.5 text-fog-2/70">
-                  {t.node[lang]}<span class="text-ok"> · {t.status[lang]}</span>
-                </p>
-              </li>
-            ))
-          }
-        </ul>
-
-        <p class="mono-micro mt-6 text-fog-2">{z ? '审批 · 2' : 'approvals · 2'}</p>
-        <ul class="mt-2.5 space-y-3">
-          {
-            m.approvals.map((a) => (
-              <li>
-                <p class="term truncate text-fog-2">{a[lang]}</p>
-                <div class="mt-2 flex gap-2">
-                  <span class="mono-micro bg-void px-2.5 py-1 text-fog">{z ? '批准' : 'approve'}</span>
-                  <span class="mono-micro border border-line-dark px-2.5 py-1 text-fog-2">{z ? '拒绝' : 'deny'}</span>
-                </div>
-              </li>
-            ))
-          }
-        </ul>
-      </div>
     </div>
   </div>
+
+  <!-- ── the control plane: approvals ── -->
+  <div class="bg-[var(--color-bg)]">
+    <div class="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3">
+      <span class="mono-micro">{z ? '控制面 · 待审批' : 'control plane · approvals'}</span>
+      <span class="mono-micro">2</span>
+    </div>
+
+    <ul>
+      {
+        APPROVALS.map((a) => (
+          <li class="border-b border-[var(--color-border)] px-5 py-4">
+            <p class="font-mono text-[0.75rem] leading-relaxed text-[var(--color-text-2)] break-words">
+              {a.req}
+            </p>
+            <p class="mono-micro mt-1.5">
+              {z ? '来自' : 'from'} {a.from}
+            </p>
+            <div class="mt-3 flex gap-1.5">
+              <span class="bg-[var(--color-text)] px-3 py-1.5 font-mono text-[0.6875rem] text-[var(--color-bg)]">
+                {z ? '批准' : 'approve'}
+              </span>
+              <span class="border border-[var(--color-border)] px-3 py-1.5 font-mono text-[0.6875rem] text-[var(--color-text-3)]">
+                {z ? '拒绝' : 'deny'}
+              </span>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+
+    <!-- event stream -->
+    <div class="p-5">
+      <p class="mono-micro mb-3">{z ? '事件流' : 'event stream'}</p>
+      <ul class="space-y-2">
+        {
+          [
+            'ax · build → cargo test --lib sort',
+            'axcrew · route → ax · bench',
+            'ax · bench → 214 runs · p50 3.1ms',
+            'axcrew · lease renewed · ax · build',
+          ].map((line) => (
+            <li class="font-mono text-[0.6875rem] leading-relaxed text-[var(--color-text-3)] break-words">
+              {line}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
 </div>

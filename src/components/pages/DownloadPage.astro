@@ -1,10 +1,11 @@
 ---
 /**
- * Download page — platforms, verify, update, windows. Bilingual.
+ * Download page — AX install + AXCrew, with scroll reveals.
  */
+import Reveal from '../../components/Reveal.astro';
 import PageHero from '../../components/PageHero.astro';
-import Section from '../../components/Section.astro';
 import InstallCommand from '../../components/islands/InstallCommand';
+import { SITE } from '../../lib/site';
 import type { Lang } from '../../lib/i18n';
 
 interface Props {
@@ -14,18 +15,30 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
 
-const PLATFORM_ROWS: [string, string, string][] = z
+const PLATFORMS: { os: string; arch: string; notes: string; install: string }[] = z
   ? [
-      ['macOS', 'arm64 · x64', 'curl 安装 · 原生二进制'],
-      ['Linux', 'x64 · arm64', 'curl 安装 · 也支持 WSL（~/.local/bin/ax）'],
-      ['Windows', 'x64', 'PowerShell 安装 · 原生或 WSL 执行'],
-      ['Source', 'any', '从 ax 仓库构建 · cargo build --release'],
+      { os: 'macOS',   arch: 'arm64 · x64',  notes: '原生二进制', install: '~/.local/bin/ax' },
+      { os: 'Linux',   arch: 'x64 · arm64',  notes: 'musl 静态二进制', install: '~/.local/bin/ax' },
+      { os: 'Windows', arch: 'x64',          notes: '原生或 WSL 执行', install: '%LOCALAPPDATA%\\Programs\\AX\\bin' },
+      { os: 'Source',  arch: 'any',          notes: '从 ax 仓库构建', install: 'cargo build --release' },
     ]
   : [
-      ['macOS', 'arm64 · x64', 'curl install · native binary'],
-      ['Linux', 'x64 · arm64', 'curl install · also inside WSL (~/.local/bin/ax)'],
-      ['Windows', 'x64', 'PowerShell install · native or WSL execution'],
-      ['Source', 'any', 'build from the ax repository · cargo build --release'],
+      { os: 'macOS',   arch: 'arm64 · x64',  notes: 'native binary',   install: '~/.local/bin/ax' },
+      { os: 'Linux',   arch: 'x64 · arm64',  notes: 'musl static',     install: '~/.local/bin/ax' },
+      { os: 'Windows', arch: 'x64',          notes: 'native or WSL',   install: '%LOCALAPPDATA%\\Programs\\AX\\bin' },
+      { os: 'Source',  arch: 'any',          notes: 'build from source', install: 'cargo build --release' },
+    ];
+
+const ENV_VARS: { name: string; purpose: string }[] = z
+  ? [
+      { name: 'AX_VERSION',     purpose: '安装指定的 release tag，而不是最新版' },
+      { name: 'AX_INSTALL_DIR', purpose: '覆盖安装目录' },
+      { name: 'AX_HOME',        purpose: '覆盖 AX 的主目录（默认 <install-dir>/.ax）' },
+    ]
+  : [
+      { name: 'AX_VERSION',     purpose: 'Install a specific release tag instead of the latest' },
+      { name: 'AX_INSTALL_DIR', purpose: 'Override the install directory' },
+      { name: 'AX_HOME',        purpose: 'Override the AX home (defaults to <install-dir>/.ax)' },
     ];
 ---
 
@@ -33,79 +46,116 @@ const PLATFORM_ROWS: [string, string, string][] = z
   kicker={z ? '下载' : 'Download'}
   title={z ? '把 AX 装到机器上。' : 'Get AX on the machine.'}
   lead={z
-    ? 'Windows、macOS、Linux 与 WSL 上同一个原生二进制——一条 curl 或 PowerShell 命令装好。发布物带 SHA256SUMS；ax --update 按精确 tag 校验。'
-    : 'One native binary on Windows, macOS, Linux and WSL — installed with one curl or PowerShell command. Releases ship with SHA256SUMS; ax --update verifies against the exact tag.'}
+    ? '一套源码分别构建 Windows、macOS 与 Linux 的原生二进制；WSL 使用 Linux 版。安装器从 GitHub Release 取归档、按 SHA256SUMS 校验，再装单个二进制。'
+    : 'One source workspace, separate native builds for Windows, macOS and Linux; WSL uses the Linux build. The installer fetches the release archive, verifies it against SHA256SUMS, then installs a single binary.'}
 />
 
-<Section>
-  <div class="mx-auto max-w-3xl">
-    <InstallCommand client:visible />
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <div class="mx-auto max-w-3xl">
+      <Reveal>
+        <InstallCommand client:visible />
+        <p class="datum mt-4">
+          {z
+            ? 'Linux/macOS 的构建与安装适配已并入源码；新平台的归档需要在对应系统上完成验证并发布之后才能下载。'
+            : 'Linux and macOS build/install adapters are merged in source; a new platform archive becomes downloadable only after native validation and publication.'}
+        </p>
+      </Reveal>
+    </div>
   </div>
+</section>
 
-  <div class="mx-auto mt-14 max-w-3xl">
-    <div class="hairline border-line">
-      <div class="grid grid-cols-[8rem_1fr] gap-x-6 border-b border-line bg-paper-2 px-4 py-2.5 sm:grid-cols-[10rem_8rem_1fr]">
-        <span class="mono-micro">{z ? '平台' : 'platform'}</span>
-        <span class="mono-micro hidden sm:block">{z ? '架构' : 'arch'}</span>
-        <span class="mono-micro">{z ? '说明' : 'notes'}</span>
-      </div>
-      {
-        PLATFORM_ROWS.map((row) => (
-          <div class="grid grid-cols-[8rem_1fr] gap-x-6 border-b border-line px-4 py-3.5 sm:grid-cols-[10rem_8rem_1fr]">
-            <span class="font-mono text-[0.8125rem] text-ink">{row[0]}</span>
-            <span class="datum hidden sm:block">{row[1]}</span>
-            <span class="datum">{row[2]}</span>
+<!-- platforms -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '平台' : 'platforms'}</p>
+      <h2 class="h2 mb-10 text-balance">{z ? '每个平台的原生构建。' : 'A native build for each platform.'}</h2>
+    </Reveal>
+
+    <div class="mx-auto max-w-3xl">
+      <Reveal delay={60}>
+        <div class="border border-[var(--color-border)]">
+          <div class="hidden grid-cols-[7rem_8rem_1fr_1fr] gap-4 border-b border-[var(--color-border)] bg-[var(--color-bg-raised)] px-5 py-3 sm:grid">
+            <span class="mono-micro">{z ? '系统' : 'os'}</span>
+            <span class="mono-micro">{z ? '架构' : 'arch'}</span>
+            <span class="mono-micro">{z ? '说明' : 'notes'}</span>
+            <span class="mono-micro">{z ? '安装位置' : 'installs to'}</span>
           </div>
-        ))
-      }
-    </div>
+          {
+            PLATFORMS.map((p) => (
+              <div class="grid gap-2 border-b border-[var(--color-border)] px-5 py-4 last:border-b-0 sm:grid-cols-[7rem_8rem_1fr_1fr] sm:gap-4">
+                <span class="font-mono text-[0.8125rem] font-medium text-[var(--color-text)]">{p.os}</span>
+                <span class="datum">{p.arch}</span>
+                <span class="datum">{p.notes}</span>
+                <code class="truncate font-mono text-[0.75rem] text-[var(--color-text-3)]">{p.install}</code>
+              </div>
+            ))
+          }
+        </div>
+      </Reveal>
 
-    <p class="mono-micro mt-6">
-      {z
-        ? '安装器从 GitHub Release 拉取最新归档、校验 SHA256SUMS 后安装单个二进制；也可用 AX_VERSION 指定 tag、AX_INSTALL_DIR 指定目录。'
-        : 'Installers fetch the latest GitHub release, verify SHA256SUMS, then install a single binary; pin a tag with AX_VERSION or a directory with AX_INSTALL_DIR.'}
-    </p>
-  </div>
-</Section>
-
-<!-- ============ AXCrew — control plane ============ -->
-<Section>
-  <div class="mx-auto max-w-3xl">
-    <p class="kicker">{z ? 'AXCrew · 控制平面' : 'AXCrew · control plane'}</p>
-    <h2 class="h2 mt-4">{z ? '再装控制平面。' : 'Then the control plane.'}</h2>
-    <p class="lede mt-4">
-      {z
-        ? 'AXCrew 是连起这些 AX 节点的桌面端与 Android 客户端。最新发布直接从 GitHub 下载。'
-        : 'AXCrew is the desktop and Android client that connects those AX nodes. Grab the latest release from GitHub.'}
-    </p>
-
-    <div class="hairline mt-8 border-line">
-      <a
-        href="https://github.com/Axium-Labs/AXCrew/releases/download/v0.3.0/AX-Crew-0.3.0-windows-x64-setup.exe"
-        class="flex items-center justify-between gap-4 px-4 py-4 transition-colors duration-200 hover:bg-paper-2"
-      >
-        <span class="flex min-w-0 items-center gap-3">
-          <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-ok"></span>
-          <span class="truncate font-mono text-sm text-ink">
-            AXCrew — Windows x64 (.exe)
-          </span>
-        </span>
-        <span class="mono-micro shrink-0 text-ink-3">{z ? '下载 ↓' : 'download ↓'}</span>
-      </a>
-      <a
-        href="https://github.com/Axium-Labs/AXCrew/releases/latest"
-        class="hairline-t flex items-center justify-between gap-4 border-t border-line px-4 py-3 transition-colors duration-200 hover:bg-paper-2"
-      >
-        <span class="mono-micro text-ink-2">{z ? '全部平台与发布说明' : 'all platforms & release notes'}</span>
-        <span class="mono-micro shrink-0 text-ink-3">github.com/Axium-Labs/AXCrew →</span>
-      </a>
-      <a
-        href="https://github.com/Axium-Labs/AXCrew"
-        class="hairline-t flex items-center justify-between gap-4 border-t border-line px-4 py-3 transition-colors duration-200 hover:bg-paper-2"
-      >
-        <span class="mono-micro text-ink-2">{z ? '源码' : 'source'}</span>
-        <span class="mono-micro shrink-0 text-ink-3">github.com/Axium-Labs/AXCrew</span>
-      </a>
+      <Reveal delay={100}>
+        <div class="mt-10">
+          <p class="label mb-4 block">{z ? '环境变量' : 'environment variables'}</p>
+          <dl class="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+            {
+              ENV_VARS.map((e) => (
+                <div class="flex flex-col gap-1 py-3.5 sm:flex-row sm:items-baseline sm:gap-6">
+                  <dt class="shrink-0 font-mono text-[0.8125rem] text-[var(--color-text)] sm:w-44">{e.name}</dt>
+                  <dd class="text-sm leading-relaxed text-[var(--color-text-2)]">{e.purpose}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </Reveal>
     </div>
   </div>
-</Section>
+</section>
+
+<!-- AXCrew -->
+<section>
+  <div class="container-x section-y">
+    <div class="mx-auto max-w-3xl">
+      <Reveal>
+        <p class="label mb-4 block">AXCrew · {z ? '控制平面' : 'control plane'}</p>
+        <h2 class="h2 mb-5 text-balance">{z ? '然后装控制平面。' : 'Then the control plane.'}</h2>
+        <p class="mb-2 max-w-xl text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+          {z
+            ? 'AXCrew 是连接这些 AX 节点的桌面端与 Android 客户端。桌面源码包含 Windows、Linux（Debian / AppImage）与 macOS（app / DMG）的打包适配。'
+            : 'AXCrew is the desktop and Android client that connects those AX nodes. Desktop source includes Windows, Linux (Debian / AppImage) and macOS (app / DMG) packaging adapters.'}
+        </p>
+        <p class="datum mb-8">
+          {z
+            ? '当前下载链接只反映已发布的 release；新平台安装包需要原生验证后才会出现。版本 ' + SITE.crewVersion + '。'
+            : 'Download links reflect published releases only; new platform installers appear after native validation. Version ' + SITE.crewVersion + '.'}
+        </p>
+      </Reveal>
+
+      <Reveal delay={80}>
+        <div class="border border-[var(--color-border)]">
+          <a
+            href="https://github.com/Axium-Labs/AXCrew/releases/latest"
+            class="flex items-center justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 transition-colors duration-150 hover:bg-[var(--color-bg-raised)]"
+          >
+            <span class="flex items-center gap-3">
+              <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-ok)]"></span>
+              <span class="font-mono text-[0.8125rem] text-[var(--color-text)]">
+                {z ? '最新发布' : 'latest release'}
+              </span>
+            </span>
+            <span class="mono-micro shrink-0">github.com/Axium-Labs/AXCrew →</span>
+          </a>
+          <a
+            href="https://github.com/Axium-Labs/AXCrew"
+            class="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors duration-150 hover:bg-[var(--color-bg-raised)]"
+          >
+            <span class="mono-micro">{z ? '源码' : 'source'}</span>
+            <span class="mono-micro shrink-0">github.com/Axium-Labs/AXCrew</span>
+          </a>
+        </div>
+      </Reveal>
+    </div>
+  </div>
+</section>

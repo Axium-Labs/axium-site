@@ -1,11 +1,9 @@
 ---
 /**
- * SendWork — the one complete real scenario, end to end:
- * laptop writes the fix → AXCrew routes the build → server compiles →
- * AXCrew routes the bench → GPU runs it → the result returns to laptop.
- * No telemetry; every line is a real command or its actual output.
+ * SendWork — a clean numbered task journey.
+ * Uses TASK_JOURNEY from topology.ts.
  */
-import { SEND_WORK, machineOf } from '../lib/topology';
+import { TASK_JOURNEY, machineOf } from '../lib/topology';
 import type { Lang } from '../lib/i18n';
 
 interface Props {
@@ -14,50 +12,72 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
-const DIR: Record<string, string> = { out: '→', back: '←', local: '·' };
 ---
 
-<div class="panel-dark grid-bg">
-  <div class="hairline-dark-b flex flex-wrap items-center justify-between gap-2 bg-void-2 px-4 py-2.5">
-    <span class="mono-micro text-fog-2">{SEND_WORK.title[lang]}</span>
-    <span class="mono-micro text-fog-2">{z ? '一个请求 · 四台机器参与' : 'one request · four machines'}</span>
+<div class="mx-auto max-w-2xl">
+
+  <!-- trigger -->
+  <div class="mb-10 border-b border-[var(--color-border)] pb-8">
+    <p class="mono-micro mb-2">{z ? '触发' : 'trigger'}</p>
+    <p class="font-mono text-base font-medium tracking-[-0.01em] text-[var(--color-text)] sm:text-lg">
+      ax run <span class="text-[var(--color-text-3)]">&ldquo;{TASK_JOURNEY[0].cmd.replace(/^ax run [""]?/, '').replace(/[""]?$/, '')}&rdquo;</span>
+    </p>
   </div>
 
-  <div class="p-5 sm:p-8">
-    <!-- the request that starts it all -->
-    <p class="term text-fog">
-      <span class="text-fog-2">$ </span>
-      <span class="text-fog">ax run "optimize the sort benchmark"</span>
-    </p>
+  <!-- steps -->
+  <ol class="space-y-0">
+    {
+      TASK_JOURNEY.map((s, i) => {
+        const isLast = i === TASK_JOURNEY.length - 1;
+        const name = s.actor === 'axcrew' ? 'AXCrew' : machineOf(s.actor).name[lang];
+        const isDone = s.kind === 'done';
+        const isCrew = s.kind === 'crew';
 
-    <ol class="mt-6">
-      {
-        SEND_WORK.steps.map((s, i) => {
-          const isLast = i === SEND_WORK.steps.length - 1;
-          const name = s.node === 'axcrew' ? 'AXCrew' : machineOf(s.node).name[lang];
-          return (
-            <li class="flex gap-4">
-              <div class="flex flex-col items-center">
+        return (
+          <li class="relative flex gap-5">
+            <!-- timeline -->
+            <div class="flex shrink-0 flex-col items-center">
+              <div
+                class:list={[
+                  'relative z-10 mt-0.5 flex h-7 w-7 items-center justify-center rounded-full font-mono text-[0.6875rem] font-semibold',
+                  isDone
+                    ? 'bg-[var(--color-ok)] text-white'
+                    : isCrew
+                    ? 'bg-[var(--color-text)] text-[var(--color-bg)]'
+                    : 'border border-[var(--color-border-strong)] bg-[var(--color-bg)] text-[var(--color-text-3)]',
+                ]}
+              >
+                {i + 1}
+              </div>
+              {!isLast && <div class="mt-1 w-px flex-1 bg-[var(--color-border)]"></div>}
+            </div>
+
+            <!-- content -->
+            <div class:list={['min-w-0 pb-7', isLast && 'pb-0']}>
+              <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
                 <span
                   class:list={[
-                    'mt-2 h-2 w-2 shrink-0 rounded-full',
-                    s.dir === 'back' ? 'bg-ok' : s.dir === 'local' ? 'bg-fog-2' : 'bg-fog',
+                    'text-[0.9375rem] font-semibold tracking-[-0.01em]',
+                    isDone
+                      ? 'text-[var(--color-ok)]'
+                      : isCrew
+                      ? 'text-[var(--color-text-2)]'
+                      : 'text-[var(--color-text)]',
                   ]}
-                ></span>
-                {!isLast && <span class="w-px flex-1 bg-line-dark"></span>}
+                >
+                  {name}
+                </span>
+                {i > 0 && (
+                  <span class="font-mono text-[0.8125rem] text-[var(--color-text-3)]">{s.cmd}</span>
+                )}
               </div>
-              <div class="min-w-0 flex-1 pb-7 last:pb-0">
-                <div class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
-                  <span class="mono-micro text-fog-2">{DIR[s.dir]}</span>
-                  <span class="font-mono text-[0.8125rem] font-medium text-fog">{name}</span>
-                  <code class="term text-fog-2">{s.cmd}</code>
-                </div>
-                <p class="term mt-1 text-fog-2/70">{s.out}</p>
-              </div>
-            </li>
-          );
-        })
-      }
-    </ol>
-  </div>
+              <p class="mt-0.5 font-mono text-[0.75rem] text-[var(--color-text-3)]">
+                {s.out[lang]}
+              </p>
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
 </div>

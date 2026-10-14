@@ -1,17 +1,15 @@
 /**
- * Demo data model — the single source for every fleet / task / boundary
- * shown on the site. No component hard-codes nodes or tasks anymore.
+ * Demo data model — single source of truth for fleet / task / boundary visuals.
  *
- * Policy: no fake latency, no invented task ids, no timestamps, no
- * telemetry decoration. Nodes and task labels are bilingual (B);
- * commands and terminal output stay English — exactly as the real
- * tools print them.
+ * Policy: no fake latency, no invented task ids, no timestamps, no telemetry.
+ * Commands and terminal output stay English exactly as the real tools print them.
+ * Node names and labels are bilingual (B).
  */
 
 import { b, type B } from './i18n';
 
 /* ============================================================
-   Machines — this demo shows one AX per Host; distributed Hosts may run multiple instances.
+   Machines
    ============================================================ */
 
 export interface Machine {
@@ -21,80 +19,84 @@ export interface Machine {
 }
 
 export const MACHINES: Machine[] = [
-  { id: 'laptop', name: b('Laptop', '笔记本'), detail: b('dev · macOS', '开发 · macOS') },
-  { id: 'server', name: b('Server', '服务器'), detail: b('build · Linux', '构建 · Linux') },
-  { id: 'gpu', name: b('GPU Server', 'GPU 服务器'), detail: b('bench · RTX 4090', '基准 · RTX 4090') },
-  { id: 'cloud', name: b('Cloud VM', '云虚拟机'), detail: b('inference · EU spot', '推理 · 欧盟竞价') },
+  { id: 'laptop',  name: b('Laptop',   '笔记本'),    detail: b('dev',          '开发机') },
+  { id: 'server',  name: b('Server',   '服务器'),    detail: b('build · Linux', '构建 · Linux') },
+  { id: 'gpu',     name: b('GPU Box',  'GPU 机器'),  detail: b('bench · RTX',  '基准 · RTX') },
+  { id: 'cloud',   name: b('Cloud VM', '云虚拟机'),  detail: b('inference',     '推理') },
 ];
-
-/** Example deployment: one AX per machine, same order as MACHINES; not a cardinality constraint. */
-export const AX_NODES = ['ax-01', 'ax-02', 'ax-03', 'ax-04'] as const;
 
 export function machineOf(id: string): Machine {
   return MACHINES.find((m) => m.id === id) ?? MACHINES[0];
 }
 
 /* ============================================================
-   Hero signature flow — one task travelling the fleet.
-   Laptop asks → AXCrew routes → a machine executes → result returns.
+   FleetNetwork — current machine states shown to visitor
    ============================================================ */
 
-export type FlowPhase = 'route' | 'execute' | 'return' | 'done';
-
-export interface FlowStep {
-  phase: FlowPhase;
-  /** device id the packet is at / heading to */
-  from: string;
-  to: string;
-  label: B;
+export interface MachineState {
+  id: string;
+  /** brief activity description, terminal output style */
+  activity: B;
+  /** 'active' | 'idle' | 'busy' */
+  state: 'active' | 'idle' | 'busy';
 }
 
-export const FLOW_STEPS: FlowStep[] = [
-  { phase: 'route', from: 'laptop', to: 'server', label: b('route · laptop → server', '路由 · 笔记本 → 服务器') },
-  { phase: 'execute', from: 'server', to: 'server', label: b('execute · cargo build --release', '执行 · cargo build --release') },
-  { phase: 'return', from: 'server', to: 'laptop', label: b('result · server → laptop', '结果 · 服务器 → 笔记本') },
-  { phase: 'done', from: 'laptop', to: 'laptop', label: b('done · receipt stored', '完成 · 收据已存') },
+export const MACHINE_STATES: MachineState[] = [
+  { id: 'laptop', state: 'active', activity: b('session · writing tests',   '会话 · 编写测试') },
+  { id: 'server', state: 'busy',   activity: b('cargo build --release',     'cargo build --release') },
+  { id: 'gpu',    state: 'idle',   activity: b('idle · ready',              '空闲 · 就绪') },
+  { id: 'cloud',  state: 'idle',   activity: b('idle · ready',              '空闲 · 就绪') },
 ];
 
-/** Phase label for the hero status line (short). */
-export const PHASE_SHORT: Record<FlowPhase, B> = {
-  route: b('routing', '路由中'),
-  execute: b('executing', '执行中'),
-  return: b('returning', '返回中'),
-  done: b('done', '完成'),
-};
-
 /* ============================================================
-   Send work where it belongs — the one complete real scenario:
-   laptop writes code → AXCrew routes the build → server compiles →
-   AXCrew routes the bench → GPU runs it → result returns to laptop.
+   Task journey — what happens when you run a task.
+   Kept deliberately simple: one machine does one job.
    ============================================================ */
 
-export interface WorkStep {
-  /** device id; 'axcrew' means the control plane step */
-  node: string;
-  /** direction of travel relative to the requester */
-  dir: 'out' | 'back' | 'local';
+export interface TaskStep {
+  /** 'local' = runs on the initiating machine, 'remote' = delegated, 'crew' = control plane, 'done' = final */
+  kind: 'local' | 'remote' | 'crew' | 'done';
+  /** node id or 'axcrew' */
+  actor: string;
   cmd: string;
-  out: string;
+  out: B;
 }
 
-export const SEND_WORK = {
-  title: b('Optimize the sort benchmark', '优化排序基准测试'),
-  task: b('One request. Four machines touch it.', '一个请求。四台机器参与。'),
-  steps: [
-    { node: 'laptop', dir: 'local', cmd: 'ax run "optimize the sort benchmark"', out: 'patch · src/sort.rs · +38 −12' },
-    { node: 'axcrew', dir: 'out', cmd: 'route · build → server', out: 'build · linux · online' },
-    { node: 'server', dir: 'out', cmd: 'cargo build --release', out: '✓ compiled · 12 crates' },
-    { node: 'axcrew', dir: 'out', cmd: 'route · bench → gpu-box', out: 'bench · rtx 4090 · online' },
-    { node: 'gpu', dir: 'out', cmd: 'cargo bench --bench sort', out: '✓ 214 runs · p50 3.1ms' },
-    { node: 'laptop', dir: 'back', cmd: '← result', out: '✓ receipt stored · done' },
-  ],
-} as const;
+export const TASK_JOURNEY: TaskStep[] = [
+  {
+    kind: 'local',
+    actor: 'laptop',
+    cmd: 'ax run "write tests for the sort module"',
+    out: b('AX · starting · local session', 'AX · 启动 · 本机会话'),
+  },
+  {
+    kind: 'local',
+    actor: 'laptop',
+    cmd: 'edit tests/sort_test.rs',
+    out: b('+47 lines · 6 new tests', '+47 行 · 6 个新测试'),
+  },
+  {
+    kind: 'crew',
+    actor: 'axcrew',
+    cmd: 'route · build → server',
+    out: b('server · online · accepted', '服务器 · 在线 · 已接受'),
+  },
+  {
+    kind: 'remote',
+    actor: 'server',
+    cmd: 'cargo test --lib sort',
+    out: b('✓ 6 passed · 0 failed', '✓ 6 通过 · 0 失败'),
+  },
+  {
+    kind: 'done',
+    actor: 'laptop',
+    cmd: '← result',
+    out: b('✓ receipt stored · done', '✓ 收据已存 · 完成'),
+  },
+];
 
 /* ============================================================
-   Control every machine — AXCrew Desktop / Mobile product UI.
-   Mirrors the real app: crews, agents, tasks, approvals, events.
+   CrewUI — desktop + mobile control surfaces
    ============================================================ */
 
 export interface CrewNavItem {
@@ -116,60 +118,56 @@ export interface CrewUiTask {
 }
 
 export interface CrewUiEvent {
-  /** terminal output — stays English */
   line: string;
 }
 
 export const CREW_UI = {
   desktop: {
     nav: [
-      { id: 'crews', label: b('Crews', '集群') },
-      { id: 'agents', label: b('Agents', '代理') },
-      { id: 'tasks', label: b('Tasks', '任务') },
-      { id: 'approvals', label: b('Approvals', '审批') },
-      { id: 'distributed', label: b('Distributed', '分布式协作') },
-      { id: 'settings', label: b('Settings', '设置') },
+      { id: 'sessions',   label: b('Sessions',    '会话') },
+      { id: 'tasks',      label: b('Tasks',       '任务') },
+      { id: 'approvals',  label: b('Approvals',   '审批') },
+      { id: 'plugins',    label: b('Plugins',     '插件') },
+      { id: 'settings',   label: b('Settings',    '设置') },
     ] as CrewNavItem[],
     devices: [
-      { id: 'laptop', name: b('Laptop', '笔记本'), status: b('online', '在线'), task: b('writing fix', '编写修复') },
-      { id: 'server', name: b('Server', '服务器'), status: b('building', '构建中'), task: b('cargo build --release', 'cargo build --release') },
-      { id: 'gpu', name: b('GPU Server', 'GPU 服务器'), status: b('benchmarking', '基准测试中'), task: b('cargo bench --bench sort', 'cargo bench --bench sort') },
-      { id: 'cloud', name: b('Cloud VM', '云虚拟机'), status: b('idle', '空闲'), task: b('—', '—') },
+      { id: 'laptop', name: b('Laptop',   '笔记本'),  status: b('active',   '活跃'),   task: b('writing tests', '编写测试') },
+      { id: 'server', name: b('Server',   '服务器'),  status: b('running',  '运行中'), task: b('cargo test',    'cargo test') },
+      { id: 'gpu',    name: b('GPU Box',  'GPU 机器'), status: b('idle',     '空闲'),   task: b('—',             '—') },
+      { id: 'cloud',  name: b('Cloud VM', '云虚拟机'), status: b('idle',     '空闲'),   task: b('—',             '—') },
     ] as CrewUiDevice[],
     tasks: [
-      { title: b('optimize the sort benchmark', '优化排序基准测试'), node: b('server · build', '服务器 · 构建'), status: b('running', '运行中') },
-      { title: b('bench the sort kernel', '对排序内核跑基准'), node: b('gpu-box · bench', 'GPU · 基准'), status: b('queued', '排队中') },
-      { title: b('review the patch', '审阅补丁'), node: b('laptop · local', '笔记本 · 本机'), status: b('awaiting approval', '等待审批') },
+      { title: b('write tests for the sort module', '为排序模块编写测试'), node: b('laptop · local', '笔记本 · 本机'), status: b('running', '运行中') },
+      { title: b('cargo test --lib sort',           'cargo test --lib sort'),           node: b('server · build', '服务器 · 构建'),  status: b('running', '运行中') },
+      { title: b('review test output',              '审阅测试输出'),                    node: b('laptop · local', '笔记本 · 本机'), status: b('awaiting approval', '等待审批') },
     ] as CrewUiTask[],
     events: [
-      { line: 'crew-a · laptop → axcrew · "optimize the sort benchmark"' },
-      { line: 'axcrew · route build → server · linux' },
-      { line: 'server · cargo build --release · ✓' },
-      { line: 'axcrew · route bench → gpu-box · rtx 4090' },
-      { line: 'gpu-box · cargo bench --bench sort · ✓ 214 runs' },
+      { line: 'laptop · ax run "write tests for the sort module"' },
+      { line: 'ax · edit tests/sort_test.rs · +47 lines' },
+      { line: 'axcrew · route cargo test → server' },
+      { line: 'server · cargo test --lib sort · ✓ 6 passed' },
       { line: 'result → laptop · receipt stored' },
     ] as CrewUiEvent[],
   },
   mobile: {
-    header: b('AXCrew · control', 'AXCrew · 控制'),
+    header: b('AXCrew', 'AXCrew'),
     sections: [
-      { id: 'fleet', label: b('Fleet', '集群') },
-      { id: 'tasks', label: b('Tasks', '任务') },
+      { id: 'tasks',     label: b('Tasks',     '任务') },
       { id: 'approvals', label: b('Approvals', '审批') },
     ] as CrewNavItem[],
     tasks: [
-      { title: b('optimize the sort benchmark', '优化排序基准测试'), node: b('server · build', '服务器 · 构建'), status: b('running', '运行中') },
-      { title: b('bench the sort kernel', '对排序内核跑基准'), node: b('gpu-box · bench', 'GPU · 基准'), status: b('queued', '排队中') },
+      { title: b('write tests for the sort module', '为排序模块编写测试'), node: b('laptop', '笔记本'), status: b('running', '运行中') },
+      { title: b('cargo test --lib sort',           'cargo test'),        node: b('server',  '服务器'),  status: b('running', '运行中') },
     ] as CrewUiTask[],
     approvals: [
-      b('shell · cargo build --release · server', 'shell · cargo build --release · 服务器'),
-      b('filesystem · write src/sort.rs · laptop', 'filesystem · 写入 src/sort.rs · 笔记本'),
+      b('filesystem · write tests/sort_test.rs · laptop', 'filesystem · 写入 tests/sort_test.rs · 笔记本'),
+      b('shell · cargo test --lib sort · server',          'shell · cargo test --lib sort · 服务器'),
     ] as B[],
   },
 } as const;
 
 /* ============================================================
-   Connected. Not merged. — every machine keeps its boundary.
+   Boundaries — four concepts, one line each
    ============================================================ */
 
 export interface Boundary {
@@ -181,29 +179,58 @@ export const BOUNDARIES: Boundary[] = [
   {
     name: b('Workspace', '工作区'),
     body: b(
-      'Each AX owns its project workspace. Work stays on the machine that runs it.',
-      '每个 AX 拥有自己的项目工作区。工作留在运行它的那台机器上。',
+      'Each AX owns its project directory. Work stays on the machine that runs it.',
+      '每个 AX 拥有自己的项目目录。工作留在运行它的那台机器上。',
     ),
   },
   {
     name: b('Sandbox', '沙箱'),
     body: b(
-      'OS-level confinement under every tool — quotas, TTLs, fail closed.',
-      '每个工具之下是操作系统级隔离——配额、TTL、失败即关闭。',
+      'OS-level confinement under every tool. Fail closed; native confinement requires Linux.',
+      '每个工具之下是操作系统级隔离。失败即关闭；原生隔离需要 Linux。',
     ),
   },
   {
     name: b('Permissions', '权限'),
     body: b(
-      'Per-node allow / ask / deny. AXCrew never bypasses a node\u2019s own grants.',
+      'Per-node allow / ask / deny. AXCrew never bypasses a node\'s own grants.',
       '每个节点独立的 allow / ask / deny。AXCrew 从不绕过节点自己的授权。',
     ),
   },
   {
-    name: b('Device identity', '设备身份'),
+    name: b('Identity', '身份'),
     body: b(
-      'Ed25519 pairing. Keys never leave the device; transport is outbound WSS.',
-      'Ed25519 配对。密钥永不离开设备；传输走出站 WSS。',
+      'Ed25519 device pairing. Private keys never leave the device; transport is outbound WSS.',
+      'Ed25519 设备配对。私钥永不离开设备；传输走出站 WSS。',
     ),
   },
 ];
+
+/* Legacy exports so old references don't break at compile time */
+export const SEND_WORK = {
+  title: b('Write tests for the sort module', '为排序模块编写测试'),
+  task:  b('One request. Two machines.', '一个请求。两台机器。'),
+  steps: TASK_JOURNEY.map((s) => ({
+    node: s.actor,
+    dir:  s.kind === 'done' ? 'back' : s.kind === 'crew' ? 'out' : s.kind === 'remote' ? 'out' : 'local',
+    cmd:  s.cmd,
+    out:  typeof s.out === 'string' ? s.out : s.out.en,
+  })),
+};
+
+export const FLOW_STEPS = TASK_JOURNEY.map((s, i) => ({
+  phase: (i === TASK_JOURNEY.length - 1 ? 'done' : i === 2 ? 'route' : i === 3 ? 'execute' : 'route') as 'route' | 'execute' | 'return' | 'done',
+  from: s.actor,
+  to:   s.actor,
+  label: s.out,
+}));
+
+export const PHASE_SHORT = {
+  route:   b('routing',   '路由中'),
+  execute: b('executing', '执行中'),
+  return:  b('returning', '返回中'),
+  done:    b('done',      '完成'),
+} as const;
+
+export type FlowPhase = 'route' | 'execute' | 'return' | 'done';
+export const AX_NODES = ['ax-01', 'ax-02', 'ax-03', 'ax-04'] as const;

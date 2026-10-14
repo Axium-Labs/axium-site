@@ -1,40 +1,51 @@
 ---
 interface Props {
   id?: string;
-  tone?: 'light' | 'dark' | 'paper2';
+  tone?: 'light' | 'raised' | 'dark';
   kicker?: string;
   title?: string;
   lead?: string;
-  /** width of the body slot; 'reading' narrows prose, default full container */
-  bodyWidth?: 'full' | 'reading' | 'reading-wide';
-  /** suppress the default top hairline (used by the hero) */
+  size?: 'lg' | 'sm';
   flush?: boolean;
 }
 
-const { id, tone = 'light', kicker, title, lead, bodyWidth = 'full', flush = false } = Astro.props;
-const dark = tone === 'dark';
+const { id, tone = 'light', kicker, title, lead, size = 'lg', flush = false } = Astro.props;
+
+const bg =
+  tone === 'dark'
+    ? 'bg-[var(--color-void)] text-[var(--color-void-text)]'
+    : tone === 'raised'
+    ? 'bg-[var(--color-bg-raised)]'
+    : 'bg-[var(--color-bg)]';
+
+const border = tone === 'dark' ? 'border-[var(--color-void-border)]' : 'border-[var(--color-border)]';
 ---
 
 <section
   id={id}
-  class:list={[
-    'relative',
-    dark ? 'bg-void text-fog' : tone === 'paper2' ? 'bg-paper-2 text-ink' : 'bg-paper text-ink',
-    !flush && 'hairline-t',
-  ]}
+  class:list={['relative', bg, !flush && 'border-t', !flush && border]}
 >
-  <div class="container-x section-pad">
+  <div class:list={['container-x', size === 'lg' ? 'section-y' : 'section-y-sm']}>
     {
-      kicker || title ? (
-        <div class="container-reading mb-14 md:mb-20">
-          {kicker && <p class:list={['kicker', dark && 'kicker-dark']}>{kicker}</p>}
-          {title && <h2 class:list={['h2 mt-4']}>{title}</h2>}
-          {lead && <p class:list={['lede mt-6', dark && 'text-fog-2']}>{lead}</p>}
+      (kicker || title) && (
+        <div class="mb-12 max-w-2xl md:mb-14">
+          {kicker && (
+            <p class:list={['label mb-3 block', tone === 'dark' && 'label-dark']}>{kicker}</p>
+          )}
+          {title && <h2 class="h2 text-balance">{title}</h2>}
+          {lead && (
+            <p
+              class:list={[
+                'mt-4 max-w-xl text-[0.9375rem] leading-relaxed',
+                tone === 'dark' ? 'text-[var(--color-void-text-2)]' : 'text-[var(--color-text-2)]',
+              ]}
+            >
+              {lead}
+            </p>
+          )}
         </div>
-      ) : null
+      )
     }
-    <div class:list={[bodyWidth === 'reading' && 'container-reading', bodyWidth === 'reading-wide' && 'container-reading-wide']}>
-      <slot />
-    </div>
+    <slot />
   </div>
 </section>

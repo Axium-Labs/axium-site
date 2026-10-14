@@ -8,6 +8,7 @@ export default defineConfig({
   site: 'https://axium.dev',
   output: 'static',
   integrations: [react(), sitemap()],
+  devToolbar: { enabled: false },
   vite: {
     plugins: [tailwindcss()],
   },

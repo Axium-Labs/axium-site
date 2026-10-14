@@ -1,13 +1,13 @@
 ---
 /**
- * AX page — four themes only: run anywhere, connect to the fleet,
- * execute locally, keep state local. Capabilities, providers and the
- * CLI reference live in the docs.
+ * AX page — the runtime, in depth. All claims from ax/docs.
  */
-import Section from '../../components/Section.astro';
+import Reveal from '../../components/Reveal.astro';
 import PageHero from '../../components/PageHero.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import TerminalHero from '../../components/islands/TerminalHero';
 import { SITE } from '../../lib/site';
-import { b, type B, type Lang } from '../../lib/i18n';
+import { type Lang } from '../../lib/i18n';
 
 interface Props {
   lang?: Lang;
@@ -16,133 +16,306 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
 
-const CONNECT_CMDS = [
-  { cmd: 'ax crew pair <code> --gateway <url>', out: b('pair a device · Ed25519 challenge', '配对设备 · Ed25519 挑战') },
-  { cmd: 'ax crew connect <url>', out: b('outbound WSS · auto-reconnect', '出站 WSS · 自动重连') },
-  { cmd: 'axcrew up', out: b('start the control plane', '启动控制平面') },
-] as const;
+/* the loop — docs/agent-loop.md, docs/architecture.md */
+const LOOP = z
+  ? [
+      { n: '01', t: '上下文按预算选择', d: '内核按 token 预算挑选上下文——绝不使用固定的消息条数或窗口比例。压缩只改变喂给模型的内容，原始历史永不删除。' },
+      { n: '02', t: '工具声明权限', d: '每个工具返回自己的 capability 与 safety，权限从不按名字猜。shell 与未知影响的工具持有独占租约；只读工具声明影响后可并发。' },
+      { n: '03', t: '有界并发', d: '依赖 DAG 里就绪的独立调用并行执行。默认并发 4，上限 64，由 AgentSupervisor 管理。' },
+      { n: '04', t: '推进前落盘', d: '每条消息与工具结果都在执行推进前写入。会话跨重启恢复，已达成的步骤绝不重跑。' },
+    ]
+  : [
+      { n: '01', t: 'Context by budget', d: 'The kernel selects context by token budget — never a fixed message count or a fraction of the window. Compression only changes what the model sees; raw history is never deleted.' },
+      { n: '02', t: 'Tools declare permission', d: 'Every tool returns its own capability and safety; permissions are never inferred from a name. Shell and unknown-effect tools hold an exclusive lease; read-only tools declare effects and run concurrently.' },
+      { n: '03', t: 'Bounded concurrency', d: 'Ready independent calls inside the dependency DAG run in parallel — default 4, cap 64, managed by AgentSupervisor.' },
+      { n: '04', t: 'Checkpoint before advancing', d: 'Every message and tool result is written before execution advances. Sessions resume across restarts; completed steps never re-run.' },
+    ];
 
-const LOCAL_STEPS: B[] = [
-  b('plan · one loop, no second planner', '规划 · 一条循环，没有第二个规划器'),
-  b('act · tools run on this machine', '执行 · 工具在这台机器上运行'),
-  b('verify · results checkpointed', '验证 · 结果全部断点'),
-  b('resume · never re-runs done work', '恢复 · 绝不重跑已完成的工作'),
-];
+/* lazy startup — the design centre of the kernel */
+const LAZY = z
+  ? [
+      { t: '提供方', d: '只在需要时才连接与认证。' },
+      { t: '技能', d: '只为路由建立索引；正文命中才加载。' },
+      { t: 'MCP 服务器', d: '在被调用前保持休眠；能力目录无需连接即可查看。' },
+      { t: '记忆', d: '按需检索，不参与启动路径。' },
+    ]
+  : [
+      { t: 'Providers', d: 'Connected and authenticated only when needed.' },
+      { t: 'Skills', d: 'Only indexed for routing; bodies load when a route hits.' },
+      { t: 'MCP servers', d: 'Dormant until invoked; the capability catalog is visible without connecting.' },
+      { t: 'Memory', d: 'Retrieved on demand, never on the startup path.' },
+    ];
 
-const STATE_ROWS: { name: B; body: B }[] = [
-  {
-    name: b('History & memory', '历史与记忆'),
-    body: b('Sessions, memory and credentials stay on the machine that owns them. AXCrew receives selected task summaries, checkpoints and published artifacts.', '会话、记忆与凭据留在拥有它们的那台机器上。AXCrew 接收协作所需的任务摘要、检查点与发布的产物。'),
-  },
-  {
-    name: b('Checkpoints', '断点'),
-    body: b('Every result is checkpointed before execution advances. Suspend, resume, supersede — work is never lost.', '每次结果都在执行推进前完成断点。挂起、恢复、取代——工作永不丢失。'),
-  },
-  {
-    name: b('Backup', '备份'),
-    body: b('ax export / ax import carry a full axpack between machines.', 'ax export / ax import 把完整的 axpack 在机器之间迁移。'),
-  },
-  {
-    name: b('Keys', '密钥'),
-    body: b('Device identity is Ed25519. Private keys never leave the device.', '设备身份是 Ed25519。私钥永不离开设备。'),
-  },
-];
+/* tools — docs/tools.md, docs/architecture.md */
+const TOOLS = ['shell', 'filesystem', 'find_files', 'glob', 'patch', 'search', 'web', 'view_image', 'browser', 'desktop'];
+
+/* storage + backup — docs/storage.md, docs/backup.md */
+const STATE = z
+  ? [
+      { t: '存储位置', d: '持久数据在 <install-dir>/.ax 下，每个项目一个独立存储。打开别的目录不会搬走数据；删掉工作区也不会删掉它的历史。' },
+      { t: '数据库', d: 'SQLite 保存会话与消息仓储；每条会话还有一份追加式 JSONL 事件流作为权威记录。' },
+      { t: '备份', d: 'ax export 生成 axpack，ax import --dry-run 先看冲突再合并。凭据与缓存不包含在内。' },
+      { t: '迁移', d: '首次启动时，旧的 ~/.ax 与已知项目 .ax 会被拷贝过来，原目录保留。AX_HOME 与 --data-dir 始终是显式覆盖。' },
+    ]
+  : [
+      { t: 'Where data lives', d: 'Persistent data sits under <install-dir>/.ax, with a separate store per project. Opening another directory never moves your data; deleting a workspace never deletes its history.' },
+      { t: 'Database', d: 'SQLite holds the session and message repository; each session also has an append-only JSONL event stream that stays authoritative.' },
+      { t: 'Backup', d: 'ax export produces an axpack; ax import --dry-run shows conflicts before merging. Credentials and caches are excluded.' },
+      { t: 'Migration', d: 'On first launch, legacy ~/.ax and known project stores are copied without deleting the originals. AX_HOME and --data-dir remain explicit overrides.' },
+    ];
+
+/* scoped capabilities — docs/capabilities.md */
+const SCOPES = z
+  ? [
+      { t: '全局', d: '$AX_HOME 下的 skills、agents、mods、mcp.toml 与 config.toml。' },
+      { t: '项目', d: '<project>/.ax 下的同名定义，覆盖全局。项目的 UUID 保存在 .ax/project.json，移动项目不会丢失身份。' },
+      { t: '解析顺序', d: '先加载全局，再叠加项目，应用 disabled_global 后构建有效注册表。同名条目整体替换，禁用不会回退到全局。' },
+    ]
+  : [
+      { t: 'Global', d: 'skills, agents, mods, mcp.toml and config.toml under $AX_HOME.' },
+      { t: 'Project', d: 'The same definitions under <project>/.ax, overriding global ones. The project UUID lives in .ax/project.json, so moving the project keeps its identity.' },
+      { t: 'Resolution', d: 'Global loads first, then project definitions apply, then disabled_global — producing the effective registry. A matching name replaces the whole definition, and disabling never falls back to global.' },
+    ];
+
+/* host permissions — docs/host-permissions.md, docs/security.md */
+const SANDBOX = z
+  ? [
+      { t: '工作区沙箱', d: '文件与终端工具在一个运行时工作区里执行，带配额与 TTL，失败即关闭。' },
+      { t: '操作系统隔离', d: '原生 OS 级隔离目前需要 Linux。Windows 与 macOS 的原生沙箱后端尚未提供，受限模式会明确失败而不是放行。' },
+      { t: '应用与网站', d: '应用、网站访问与具体操作的审批独立于文件/终端边界。主机界面的授权不改变工作区边界。' },
+      { t: '本机自动化', d: 'Windows 原生 Computer Use 默认开启，并遵守显式的关闭设置。' },
+    ]
+  : [
+      { t: 'Workspace sandbox', d: 'File and terminal tools execute inside a runtime workspace with quotas and TTLs, failing closed.' },
+      { t: 'OS confinement', d: 'Native OS-level confinement currently requires Linux. Windows and macOS native sandbox backends are not available, and confined modes fail explicitly instead of allowing through.' },
+      { t: 'Apps and sites', d: 'Application, website and action approval are separate from the file/terminal boundary. A host-UI grant does not change the workspace boundary.' },
+      { t: 'Host automation', d: 'Native Windows Computer Use is enabled by default and respects explicit disable settings.' },
+    ];
 ---
 
 <PageHero
   kicker={z ? 'AX · 代理运行时' : 'AX · agent runtime'}
-  title={z ? '代理真正干活的地方。' : 'The runtime where agents work.'}
+  title={z ? '内核负责机制。技能决定行为。' : 'The kernel owns mechanism. Skills decide behaviour.'}
   lead={z
-    ? 'AX 是一台机器上的代理运行时：一个二进制，本地执行，能加入由 AXCrew 连接的集群。能力细节在文档里——这里只讲它在哪里跑、如何连接、如何守住边界。'
-    : 'AX is the agent runtime on a machine: one binary, local execution, able to join a fleet connected by AXCrew. The capability details live in the docs — here is where it runs, how it connects, and how it keeps its boundary.'}
-  meta={[`v${SITE.axVersion}`, 'rust · single static binary', z ? '本地优先 · 提供方中立' : 'local first · provider-neutral', z ? '断点 · 可恢复' : 'checkpointed · resumable']}
+    ? 'AX 是一个快速、轻量的终端 AI 代理，用 Rust 写成：单个原生二进制，会话、记忆、凭据与模型配置都存在本机——不需要注册服务，没有远端遥测。'
+    : 'AX is a fast, lightweight AI agent for the terminal, written in Rust: a single native binary with sessions, memory, credentials and model config stored locally — no service to sign up for, no remote telemetry.'}
+  meta={[`v${SITE.axVersion}`, 'Rust', z ? '单二进制' : 'single binary', z ? '本地优先' : 'local first', z ? '提供方中立' : 'provider-neutral']}
 />
 
-<!-- ============ 01 CONNECT TO FLEET ============ -->
-<Section
-  id="connect-fleet"
-  tone="dark"
-  kicker={z ? '01 — connect to the fleet' : '01 — connect to the fleet'}
-  title={z ? '加入集群，只需要一次配对。' : 'Join the fleet with one pairing.'}
-  lead={z
-    ? 'AXCrew 是控制平面；每台 AX 设备通过出站连接加入它。没有入站端口，没有 SSH，没有私钥离开设备。'
-    : 'AXCrew is the control plane; every AX device joins it over an outbound connection. No inbound port, no SSH, no private key leaving the device.'}
->
-  <div class="grid items-start gap-10 lg:grid-cols-2 lg:gap-14">
-    <div class="panel-dark grid-bg">
-      <div class="hairline-dark-b bg-void-2 px-4 py-2.5">
-        <span class="mono-micro text-fog-2">{z ? 'CLI · 命令保持英文' : 'cli · commands stay english'}</span>
-      </div>
-      <div class="space-y-5 p-5 sm:p-6">
-        {
-          CONNECT_CMDS.map((c) => (
-            <div>
-              <code class="term text-fog">$ {c.cmd}</code>
-              <p class="mono-micro mt-1 text-fog-2">{c.out[lang]}</p>
-            </div>
-          ))
-        }
-      </div>
-    </div>
-    <div class="space-y-4">
+<!-- 01 · the loop -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '01 · 执行循环' : '01 · the loop'}</p>
+      <h2 class="h2 max-w-2xl text-balance">
+        {z ? '一条循环，没有第二个规划器。' : 'One loop. There is no second planner.'}
+      </h2>
+    </Reveal>
+
+    <div class="mt-14 grid gap-x-14 gap-y-0 md:grid-cols-2">
       {
-        [
-          b('One-time pairing code + Ed25519 challenge', '一次性配对码 + Ed25519 挑战'),
-          b('Outbound WSS with heartbeats and backoff', '带心跳与退避的出站 WSS'),
-          b('Disconnect marks offline · resume on reconnect', '断线标记离线 · 重连即恢复'),
-          b('AXCrew never reaches into agent state', 'AXCrew 从不伸进代理状态'),
-        ].map((t) => (
-          <p class="hairline-b border-b border-line-dark pb-3 font-mono text-[0.8125rem] text-fog-2">{t[lang]}</p>
+        LOOP.map((item, i) => (
+          <Reveal delay={(i % 2) * 80}>
+            <div class="flex gap-5 border-t border-[var(--color-border)] py-7">
+              <span class="mono-micro shrink-0 pt-1 tabular-nums">{item.n}</span>
+              <div>
+                <h3 class="h3 mb-2">{item.t}</h3>
+                <p class="text-sm leading-relaxed text-[var(--color-text-2)]">{item.d}</p>
+              </div>
+            </div>
+          </Reveal>
+        ))
+      }
+    </div>
+
+    <Reveal delay={120}>
+      <div class="mt-12 grid items-start gap-8 lg:grid-cols-[1.1fr_1fr]">
+        <div class="term-surface overflow-hidden">
+          <div class="divider-dark-b px-4 py-2.5">
+            <span class="mono-micro text-[var(--color-void-text-2)]">
+              {z ? '本机会话 · 工具执行时间线' : 'local session · tool timeline'}
+            </span>
+          </div>
+          <div class="min-h-[10rem] p-4">
+            <TerminalHero client:visible lang={lang} />
+          </div>
+        </div>
+
+        <div>
+          <p class="h3 mb-3">{z ? '启动路径尽可能空' : 'The startup path does as little as possible'}</p>
+          <p class="mb-5 text-sm leading-relaxed text-[var(--color-text-2)]">
+            {z
+              ? 'AX 的设计原则是惰性加载：没有任何东西会在启动时被无谓地拉起来。'
+              : 'AX loads lazily by design: nothing is pulled up at startup that the turn does not need.'}
+          </p>
+          <ul class="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+            {LAZY.map((l) => (
+              <li class="py-3">
+                <span class="text-[0.875rem] font-medium text-[var(--color-text)]">{l.t}</span>
+                <span class="text-[0.875rem] text-[var(--color-text-2)]"> — {l.d}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </Reveal>
+  </div>
+</section>
+
+<!-- 02 · tools -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:gap-20">
+      <Reveal>
+        <div class="lg:sticky lg:top-28">
+          <p class="label mb-4 block">{z ? '02 · 工具' : '02 · tools'}</p>
+          <h2 class="h2 mb-5 text-balance">
+            {z ? '权限是声明的，不是猜的。' : 'Permissions are declared, not guessed.'}
+          </h2>
+          <p class="text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+            {z
+              ? '内置工具覆盖 shell、文件系统、搜索、补丁、网页与图像。每个工具自己声明允许、询问还是拒绝——UI 与运行时共用同一个 PermissionStore。'
+              : 'Built-ins cover shell, filesystem, search, patch, web and images. Each declares allow, ask or deny for itself — the UI and the runtime share one PermissionStore.'}
+          </p>
+        </div>
+      </Reveal>
+
+      <Reveal delay={80}>
+        <div>
+          <div class="flex flex-wrap gap-2">
+            {TOOLS.map((t) => (
+              <code class="border border-[var(--color-border)] px-2.5 py-1.5 font-mono text-[0.75rem] text-[var(--color-text-2)]">
+                {t}
+              </code>
+            ))}
+          </div>
+          <div class="mt-8">
+            <CodeBlock code={'ax run "find the failing test and fix it"'} label="run" lang="sh" />
+          </div>
+        </div>
+      </Reveal>
+    </div>
+  </div>
+</section>
+
+<!-- 03 · subsystems -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '03 · 能力与作用域' : '03 · capabilities & scopes'}</p>
+      <h2 class="h2 max-w-2xl text-balance">
+        {z ? '技能、MCP、Agent 与 Mod 共用同一套作用域。' : 'Skills, MCP, Agents and Mods share one scope system.'}
+      </h2>
+    </Reveal>
+
+    <div class="mt-14 grid gap-px bg-[var(--color-border)] md:grid-cols-3">
+      {
+        SCOPES.map((s, i) => (
+          <Reveal delay={i * 70}>
+            <div class="h-full bg-[var(--color-bg)] p-7">
+              <p class="h3 mb-2.5">{s.t}</p>
+              <p class="text-sm leading-relaxed text-[var(--color-text-2)]">{s.d}</p>
+            </div>
+          </Reveal>
+        ))
+      }
+    </div>
+
+    <Reveal delay={100}>
+      <div class="mt-10 grid gap-8 lg:grid-cols-2">
+        <CodeBlock
+          code={'# skills/<name>/SKILL.md\n# agents/<name>.toml\n# mods/<name>/mod.json\n# mcp.toml\n# config.toml'}
+          label="global · $AX_HOME"
+        />
+        <CodeBlock
+          code={'# skills/<name>/SKILL.md\n# agents/<name>.md\n# mods/<name>/mod.json\n# mcp.toml\n# config.toml\n# project.json'}
+          label="project · <project>/.ax"
+        />
+      </div>
+    </Reveal>
+  </div>
+</section>
+
+<!-- 04 · state -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '04 · 状态与存储' : '04 · state & storage'}</p>
+      <h2 class="h2 max-w-2xl text-balance">
+        {z ? '状态留在它所属的机器上。' : 'State stays where it belongs.'}
+      </h2>
+    </Reveal>
+
+    <div class="mt-14 grid gap-x-14 gap-y-0 md:grid-cols-2">
+      {
+        STATE.map((s, i) => (
+          <Reveal delay={(i % 2) * 80}>
+            <div class="border-t border-[var(--color-border)] py-7">
+              <h3 class="h3 mb-2">{s.t}</h3>
+              <p class="text-sm leading-relaxed text-[var(--color-text-2)]">{s.d}</p>
+            </div>
+          </Reveal>
+        ))
+      }
+    </div>
+
+    <Reveal delay={120}>
+      <div class="mt-10 max-w-2xl">
+        <CodeBlock
+          code={'ax export backup.axpack\nax import backup.axpack --dry-run\nax import backup.axpack'}
+          label={z ? '备份与恢复' : 'backup & restore'}
+          lang="sh"
+        />
+      </div>
+    </Reveal>
+  </div>
+</section>
+
+<!-- 05 · sandbox -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '05 · 沙箱与主机权限' : '05 · sandbox & host access'}</p>
+      <h2 class="h2 max-w-2xl text-balance">
+        {z ? '知道边界在哪里。' : 'Know where the boundary is.'}
+      </h2>
+      <p class="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+        {z
+          ? '文件与终端、应用与网站、具体操作——这三件事的边界是分开的，各自独立授权。'
+          : 'Files and terminal, applications and sites, individual actions — these are three separate boundaries with independent grants.'}
+      </p>
+    </Reveal>
+
+    <div class="mt-14 grid gap-x-14 gap-y-0 md:grid-cols-2">
+      {
+        SANDBOX.map((s, i) => (
+          <Reveal delay={(i % 2) * 80}>
+            <div class="border-t border-[var(--color-border)] py-7">
+              <h3 class="h3 mb-2">{s.t}</h3>
+              <p class="text-sm leading-relaxed text-[var(--color-text-2)]">{s.d}</p>
+            </div>
+          </Reveal>
         ))
       }
     </div>
   </div>
-</Section>
+</section>
 
-<!-- ============ 02 EXECUTE LOCALLY ============ -->
-<Section
-  id="execute-locally"
-  kicker={z ? '02 — execute locally' : '02 — execute locally'}
-  title={z ? '循环在机器上运行。' : 'The loop runs on the machine.'}
-  lead={z
-    ? 'AX 的代理循环——规划、调用工具、验证、断点——全部在这台机器上发生。文件与终端遵循工作区沙箱，应用与网站访问单独授权；原生操作系统隔离目前需要 Linux。'
-    : 'AX\u2019s agent loop — plan, call tools, verify, checkpoint — happens entirely on this machine. File and terminal tools use the workspace sandbox; app and website access is authorized separately. Native OS confinement currently requires Linux.'}
->
-  <div class="hairline border-line">
-    {
-      LOCAL_STEPS.map((s, i) => (
-        <div class="flex items-baseline gap-4 border-b border-line px-4 py-4 last:border-b-0 sm:px-5">
-          <span class="mono-micro shrink-0 tabular-nums text-ink-3">{String(i + 1).padStart(2, '0')}</span>
-          <span class="font-mono text-[0.8125rem] text-ink">{s[lang]}</span>
+<!-- 06 · exit -->
+<section>
+  <div class="container-x section-y">
+    <Reveal>
+      <div class="max-w-2xl">
+        <p class="label mb-4 block">{z ? '继续' : 'continue'}</p>
+        <h2 class="h2 mb-6 text-balance">
+          {z ? '完整的参考在仓库文档里。' : 'The full reference lives in the repository docs.'}
+        </h2>
+        <div class="flex flex-wrap gap-x-8 gap-y-2">
+          <a href={z ? '/zh/docs' : '/docs'} class="datum text-link">{z ? '文档索引 →' : 'docs index →'}</a>
+          <a href={z ? '/zh/crew' : '/crew'} class="datum text-link">AXCrew →</a>
+          <a href={z ? '/zh/download' : '/download'} class="datum text-link">{z ? '下载 →' : 'download →'}</a>
         </div>
-      ))
-    }
+      </div>
+    </Reveal>
   </div>
-</Section>
-
-<!-- ============ 03 KEEP STATE LOCAL ============ -->
-<Section
-  id="keep-state-local"
-  tone="paper2"
-  kicker={z ? '03 — keep state local' : '03 — keep state local'}
-  title={z ? '状态留在它所属的机器上。' : 'State stays where it belongs.'}
-  lead={z
-    ? '历史、记忆、凭据、密钥——都留在本地。AXCrew 路由任务和流式事件，但它从不触碰代理状态。'
-    : 'History, memory, credentials, keys — all stay local. AXCrew routes tasks and streams events; it never touches agent state.'}
->
-  <div class="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
-    {
-      STATE_ROWS.map((r) => (
-        <div class="bg-paper-2 p-6">
-          <p class="font-mono text-[0.8125rem] font-medium tracking-[-0.01em] text-ink">{r.name[lang]}</p>
-          <p class="mt-2.5 text-sm leading-relaxed text-ink-2">{r.body[lang]}</p>
-        </div>
-      ))
-    }
-  </div>
-  <p class="datum mt-8">
-    {z
-      ? '工具、技能、MCP、记忆、子代理、沙箱、提供方、CLI——完整参考在文档里。'
-      : 'Tools, skills, MCP, memory, subagents, sandbox, providers, CLI — the full reference is in the docs.'}
-  </p>
-</Section>
+</section>

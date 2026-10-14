@@ -4,19 +4,23 @@ import CopyButton from './CopyButton.astro';
 interface Props {
   code: string;
   label?: string;
+  /** shown next to the label, e.g. "sh" */
   lang?: string;
   copyable?: boolean;
 }
 
-const { code, label, lang = 'text', copyable = false } = Astro.props;
+const { code, label, lang, copyable = true } = Astro.props;
 const id = `code-${Math.random().toString(36).slice(2, 8)}`;
 ---
 
-<div class="panel-dark relative">
+<div class="panel-dark">
   {
     label && (
-      <div class="hairline-dark-b flex items-center justify-between bg-void-2 px-3.5 py-2">
-        <span class="mono-micro text-fog-2">{label}{lang !== 'text' && <span> · {lang}</span>}</span>
+      <div class="hairline-dark-b flex items-center justify-between bg-void-2 px-4 py-2">
+        <span class="mono-micro text-fog-2">
+          {label}
+          {lang && <span class="text-fog-2/60"> · {lang}</span>}
+        </span>
         {copyable && <CopyButton target={id} />}
       </div>
     )

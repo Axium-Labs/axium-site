@@ -1,15 +1,11 @@
 ---
 /**
- * AXCrew page — five themes: connect, delegate, control, observe,
- * security. REST endpoints and protocol details live in the docs.
+ * AXCrew page — the control plane, in depth. All claims from axcrew/docs.
  */
-import Section from '../../components/Section.astro';
+import Reveal from '../../components/Reveal.astro';
 import PageHero from '../../components/PageHero.astro';
-import SendWork from '../../components/SendWork.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
 import CrewUI from '../../components/CrewUI.astro';
-import Boundaries from '../../components/Boundaries.astro';
-import FleetNetwork from '../../components/islands/FleetNetwork';
-import { CREW_UI } from '../../lib/topology';
 import { SITE } from '../../lib/site';
 import type { Lang } from '../../lib/i18n';
 
@@ -19,112 +15,332 @@ interface Props {
 
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
+
+/* how a device joins — protocol/api.md, distributed-collaboration.md */
+const CONNECT = z
+  ? [
+      { t: '一次性配对码', d: '桌面端或手机签发配对码，设备用它换取身份。之后不再需要人工干预。' },
+      { t: 'Ed25519 挑战', d: '每个设备用私钥应答挑战。私钥永不离开设备，Crew 也不保存它。' },
+      { t: '出站 WSS', d: '设备主动连出，带心跳与退避重连。不需要入站端口，不需要 SSH，不需要公网地址。' },
+      { t: '断线即离线', d: '连接断开就把节点标记为离线，重连后恢复。任务状态由 Crew 一侧持久化，不依赖长连接存活。' },
+    ]
+  : [
+      { t: 'One-time pairing code', d: 'The desktop or phone issues a code; the device trades it for an identity. After that no manual step is needed.' },
+      { t: 'Ed25519 challenge', d: 'Each device answers with its private key. That key never leaves the device, and Crew never stores it.' },
+      { t: 'Outbound WSS', d: 'Devices connect out with heartbeats and backoff. No inbound port, no SSH, no public address.' },
+      { t: 'Offline on disconnect', d: 'A dropped link marks the node offline and resumes on reconnect. Task state is persisted on the Crew side, so it does not depend on a live socket.' },
+    ];
+
+/* three identities — axcrew/docs/distributed-collaboration.md */
+const IDENTITIES = z
+  ? [
+      { t: 'Host', d: '一台物理或虚拟机器。提供共享资源——CPU、内存、GPU。一个 Host 上可以运行多个 AX 实例。' },
+      { t: 'AX Instance', d: '一个独立的运行时，带自己的模型、能力、记忆、配置与权限。这是调度的能力单位。' },
+      { t: 'Execution', d: '一次具体执行，在自己的隔离工作区里跑。这是并发的实际单位。' },
+    ]
+  : [
+      { t: 'Host', d: 'One physical or virtual machine. It provides shared resources — CPU, memory, GPU. A single Host can run several AX instances.' },
+      { t: 'AX Instance', d: 'An independent runtime with its own model, capabilities, memory, config and permissions. This is the unit of capability.' },
+      { t: 'Execution', d: 'One concrete run, in its own isolated workspace. This is the unit of actual concurrency.' },
+    ];
+
+/* durable state — the real mechanism, not a generic diagram */
+const DURABLE = z
+  ? [
+      { t: 'Durable Task', d: '任务本身持久化在 Crew 一侧，带状态机与重试计数。' },
+      { t: 'Event', d: '有序事件流记录执行过程。普通会话的事件索引保存脱敏元数据。' },
+      { t: 'Artifact', d: '不可变的 SHA-256 产物，单个上限 8 MiB。只有明确发布的产物会共享。' },
+      { t: 'Workflow State', d: '带版本的检查点，配合归属租约与代次隔离实现恢复。' },
+    ]
+  : [
+      { t: 'Durable Task', d: 'The task itself is persisted on the Crew side, with its state machine and retry count.' },
+      { t: 'Event', d: 'An ordered event stream records what happened. The ordinary session index keeps redacted metadata.' },
+      { t: 'Artifact', d: 'Immutable SHA-256 artifacts, 8 MiB each. Only explicitly published artifacts are shared.' },
+      { t: 'Workflow State', d: 'Versioned checkpoints that work with ownership leases and generation fencing to make recovery safe.' },
+    ];
+
+/* recovery model — what is actually true about it */
+const RECOVERY = z
+  ? [
+      { t: '异步拉取', d: 'AX Worker 主动拉取工作并回传结果。不需要高频的 AX 到 AX 直接通信。' },
+      { t: '没有常驻协调者', d: '不需要一个永久存活的 Coordinator Agent。Crew 进程重启后，租约与检查点让工作继续。' },
+      { t: '代次隔离', d: '归属与 generation fencing 保证掉线 Worker 的迟到结果不会覆盖新一次执行。' },
+      { t: '至少一次', d: '执行语义是至少一次。幂等请求与稳定子请求 ID 让重放安全。' },
+    ]
+  : [
+      { t: 'Pulled asynchronously', d: 'AX workers pull work and report results back. No high-frequency direct AX-to-AX communication is required.' },
+      { t: 'No resident coordinator', d: 'No permanently live Coordinator Agent. After a Crew restart, leases and checkpoints let work continue.' },
+      { t: 'Generation fencing', d: 'Ownership and generation fencing keep a late result from a dead worker from overwriting a newer attempt.' },
+      { t: 'At least once', d: 'Execution is at-least-once. Idempotent requests and stable child request IDs make replay safe.' },
+    ];
+
+/* the desktop surface — apps/desktop + docs/desktop/README.md */
+const DESKTOP = z
+  ? [
+      { t: '会话与项目', d: '桌面端按项目组织会话，可以继续本地 AX 的历史——打开后看到原始消息与合成器，发送就接着同一个 AX 会话跑。' },
+      { t: 'Review 面板', d: '宽侧栏展示保存的 diff、可展开的工作区文件树、可关闭标签页与 Markdown 预览。本地 UTF-8 文件可直接编辑保存，带磁盘变更检查。' },
+      { t: 'Settings → Goal', d: '配置 AX 拥有的全局或项目验收策略：确定性或模型验证、All/Any 条件、Command/HTTP/MCP 验证器、执行预算与进度阈值。AX 负责持久化，Crew 不保存副本。' },
+      { t: 'Settings → Plugins', d: '统一管理 Mod、MCP 与技能，并按全局/项目作用域控制委派深度与并行度（0 关闭，1 直接子代理，更大允许嵌套）。' },
+    ]
+  : [
+      { t: 'Sessions and projects', d: 'The desktop organises sessions by project and can continue local AX history — open one to see the original messages and composer; sending resumes the same AX session.' },
+      { t: 'Review pane', d: 'A wide sidebar with saved diffs, an expandable workspace tree, closable tabs and Markdown preview. Local UTF-8 files can be edited and saved with a disk-change check.' },
+      { t: 'Settings → Goal', d: 'Configure AX-owned global or project acceptance policy: deterministic or model validation, All/Any conditions, Command/HTTP/MCP validators, execution budgets and progress thresholds. AX persists it; Crew keeps no duplicate.' },
+      { t: 'Settings → Plugins', d: 'Manage Mods, MCP and skills together, and control delegation depth and parallelism per scope (0 disables, 1 permits direct children, higher allows nesting).' },
+    ];
+
+/* automation + orchestration */
+const WORK = z
+  ? [
+      { t: '跨机器委派', d: '把任务交给另一台机器，Crew 路由到那台机器的 AX，并把结果流式回传。' },
+      { t: '任务 DAG', d: '确定性的依赖图，带重试、取消与跨设备自动恢复。' },
+      { t: 'Automation', d: '定时任务——夜间构建、错误摘要、站会简报、部署检查——从预设或普通对话创建。' },
+      { t: '审批代理', d: '权限请求送到控制面，在桌面端或手机里批准或拒绝。Crew 从不绕过节点自己的授权。' },
+    ]
+  : [
+      { t: 'Cross-machine delegation', d: 'Hand a task to another machine; Crew routes it to that machine\'s AX and streams the result back.' },
+      { t: 'Task DAGs', d: 'Deterministic dependency graphs with retries, cancellation and automatic resume across devices.' },
+      { t: 'Automation', d: 'Recurring jobs — nightly builds, error digests, standup briefs, deployment checks — from presets or plain chat.' },
+      { t: 'Approval brokering', d: 'Permission requests reach the control plane for approve or deny on desktop or phone. Crew never bypasses a node\'s own grants.' },
+    ];
+
+/* honest limits */
+const LIMITS = z
+  ? [
+      '一个权威 Crew 进程配 SQLite，不做复制共识。',
+      '资源是调度预留，不是操作系统配额。',
+      '单个 Artifact 上限 8 MiB，没有自动垃圾回收。',
+      '真实的多机网络、TLS 与 GPU 隔离尚未验证。',
+    ]
+  : [
+      'One authoritative Crew process with SQLite; no replicated consensus.',
+      'Resources are scheduling reservations, not OS quotas.',
+      'Artifacts are capped at 8 MiB each, with no automatic GC.',
+      'Real multi-host networking, TLS and GPU isolation have not been validated.',
+    ];
 ---
 
 <PageHero
-  kicker={z ? 'AXCrew · 代理编排' : 'AXCrew · agent orchestration'}
-  title={z ? '每一台机器的控制平面。' : 'A control plane for every machine.'}
+  kicker={z ? 'AXCrew · 控制平面' : 'AXCrew · control plane'}
+  title={z ? '连接、控制、编排你所有的 AX。' : 'Connect, control and orchestrate every AX you run.'}
   lead={z
-    ? 'AXCrew 连接你已经拥有的 AX 运行时——笔记本、服务器、GPU 机器、云虚拟机，以及口袋里的手机——并在它们之间调度确定性的工作。AX 守着循环；AXCrew 守着集群。'
-    : 'AXCrew connects the AX runtimes you already have — on laptops, servers, GPU boxes, cloud VMs and a phone in your pocket — and schedules deterministic work across them. AX keeps the loop; AXCrew keeps the fleet.'}
-  meta={[`v${SITE.crewVersion}`, 'control plane · desktop · android', 'ed25519 · outbound wss', z ? '持久化协作状态' : 'durable collaboration state']}
+    ? 'AXCrew 是一个 Rust 控制平面：它配上你已经装好的 AX，在它们之间调度工作，并把发生的一切流式回传。两台一起开发、一起发布——代理运行时，以及协调它的控制平面。'
+    : 'AXCrew is a Rust control plane: it pairs the AX installs you already have, schedules work across them, and streams back what happens. The two ship together — the agent runtime, and the control plane that coordinates it.'}
+  meta={[`v${SITE.crewVersion}`, 'Rust · Tauri 2', z ? '桌面 · Android' : 'desktop · android', z ? '出站 WSS' : 'outbound wss']}
 />
 
-<!-- ============ 01 CONNECT ============ -->
-<Section
-  id="connect"
-  kicker={z ? '01 — connect' : '01 — connect'}
-  title={z ? '一支集群，一个视图。' : 'One fleet, one view.'}
-  lead={z
-    ? '设备配对一次，之后从任何地方路由任务、流式接收事件、审批权限。设备只出站连接——不需要入站端口，不需要 SSH。'
-    : 'Pair a device once, then route tasks, stream events and approve permissions from anywhere. Devices connect out — no inbound port, no SSH.'}
->
-  <div class="panel-dark grid-bg">
-    <div class="hairline-dark-b flex items-center justify-between bg-void-2 px-4 py-2.5">
-      <span class="mono-micro text-fog-2">topology · live</span>
-      <span class="mono-micro text-fog-2">laptop · server · gpu · cloud · mobile</span>
-    </div>
-    <div class="p-4 sm:p-6">
-      <FleetNetwork client:visible lang={lang} />
+<!-- 01 · connect -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <div class="grid gap-14 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
+      <Reveal>
+        <p class="label mb-4 block">{z ? '01 · 连接' : '01 · connect'}</p>
+        <h2 class="h2 mb-5 text-balance">
+          {z ? '设备只出站连接。' : 'Devices connect out, and only out.'}
+        </h2>
+        <p class="mb-10 max-w-md text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+          {z
+            ? '没有入站端口，没有 SSH，没有私钥离开设备。这让一台 NAT 后面的机器也能加入集群。'
+            : 'No inbound port, no SSH, no private key leaving the device. That is what lets a machine behind NAT join the fleet.'}
+        </p>
+
+        <dl class="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+          {
+            CONNECT.map((c) => (
+              <div class="py-5">
+                <dt class="h3 mb-1.5">{c.t}</dt>
+                <dd class="text-sm leading-relaxed text-[var(--color-text-2)]">{c.d}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </Reveal>
+
+      <Reveal delay={100}>
+        <div class="space-y-4 lg:pt-16">
+          <CodeBlock code="ax crew pair <code> --gateway https://crew.example.com" label="pair" lang="sh" />
+          <CodeBlock code="ax crew connect <url>" label="connect" lang="sh" />
+          <CodeBlock code="axcrew up" label="start the control plane" lang="sh" />
+          <p class="datum">
+            {z
+              ? '控制平面本身是 crates/server，走 REST 与 WebSocket。桌面端与 Android 客户端只通过这套 API 通信。'
+              : 'The control plane itself is crates/server over REST and WebSocket. Desktop and Android reach it through that API only.'}
+          </p>
+        </div>
+      </Reveal>
     </div>
   </div>
-</Section>
+</section>
 
-<!-- ============ 02 DELEGATE ============ -->
-<Section
-  id="delegate"
-  tone="paper2"
-  kicker={z ? '02 — delegate' : '02 — delegate'}
-  title={z ? '任务找到具备能力的 AX。' : 'Work finds a capable AX.'}
-  lead={z
-    ? '一个请求在笔记本上进入，被路由到构建服务器与 GPU 机器，结果回到发起方。AX 干活，AXCrew 搬运。'
-    : 'One request enters on the laptop, gets routed to the build server and the GPU box, and the result comes back to the requester. AX does the work; AXCrew moves it.'}
->
-  <SendWork lang={lang} />
-</Section>
+<!-- 02 · three identities -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '02 · 三个身份' : '02 · three identities'}</p>
+      <h2 class="h2 max-w-2xl text-balance">
+        {z ? 'Host 提供资源。实例提供能力。' : 'A Host provides resources. An instance provides capability.'}
+      </h2>
+      <p class="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+        {z
+          ? '把这三件事分开，才能让一台机器上跑多个 AX，并让每个 AX 带着自己的模型与权限独立调度。'
+          : 'Separating these three is what allows several AX instances on one machine, each scheduled independently with its own model and permissions.'}
+      </p>
+    </Reveal>
 
-<!-- ============ 03 CONTROL ============ -->
-<Section
-  id="control"
-  kicker={z ? '03 — control' : '03 — control'}
-  title={z ? '桌面控制。手机审批。' : 'Desktop control. Phone approval.'}
-  lead={z
-    ? 'AXCrew 的桌面端与 Android 客户端连同一套 API：在桌面上调度，在口袋里审批，处处看到同一个集群。'
-    : 'AXCrew\u2019s desktop app and Android client speak the same API: schedule on the desk, approve from the pocket, see the same fleet everywhere.'}
->
-  <CrewUI lang={lang} />
-</Section>
-
-<!-- ============ 04 OBSERVE ============ -->
-<Section
-  id="observe"
-  tone="dark"
-  kicker={z ? '04 — observe' : '04 — observe'}
-  title={z ? '一切都在一条流里。' : 'Everything, in one stream.'}
-  lead={z
-    ? '实时 CrewEvent：路由、工具调用、审批、结果。普通会话的事件索引保存脱敏元数据；分布式协作持久化任务、检查点与明确发布的产物，完整 Session 和 Memory 仍留在 AX。'
-    : 'Live CrewEvents: routing, tool calls, approvals, results. The ordinary session event index keeps redacted metadata. Distributed collaboration persists tasks, checkpoints and published artifacts; complete Session and Memory stores stay on AX.'}
->
-  <ul class="divide-y divide-line-dark border border-line-dark">
-    {
-      CREW_UI.desktop.events.map((e, i) => (
-        <li class="term flex items-center gap-4 px-4 py-3 text-fog-2 sm:px-5">
-          <span class="mono-micro shrink-0 tabular-nums text-fog-2/60">{String(i + 1).padStart(2, '0')}</span>
-          <span class="truncate">{e.line}</span>
-        </li>
-      ))
-    }
-  </ul>
-</Section>
-
-<!-- ============ 05 SECURITY ============ -->
-<Section
-  id="security"
-  tone="paper2"
-  kicker={z ? '05 — security' : '05 — security'}
-  title={z ? '边界就是安全。' : 'The boundary is the security.'}
-  lead={z
-    ? '每台机器保持自己的工作区、沙箱、权限与身份。AXCrew 在它们之间路由任务与事件——从不把边界打开。'
-    : 'Every machine keeps its own workspace, sandbox, permissions and identity. AXCrew routes tasks and events between them — it never opens a boundary.'}
->
-  <Boundaries lang={lang} />
-</Section>
-
-<Section
-  id="distributed"
-  kicker={z ? 'Distributed Collaboration · AX 0.3.7 / AXCrew 0.3.3' : 'Distributed Collaboration · AX 0.3.7 / AXCrew 0.3.3'}
-  title={z ? '工作流持续存在，AX 可以接替。' : 'Durable workflows, replaceable AX workers.'}
-  lead={z
-    ? 'Host 提供共享资源，AX Instance 提供独立能力，一个 Host 可运行多个 AX，一个 AX 可通过独立 Session 参与多个 Goal；并发由实际执行槽位、工作区和共享资源约束决定。AXCrew 统一管理调度、归属、租约与恢复；AX 保持现有推理与执行循环。桌面协作工作台包含协作、节点与执行活动三个视图。'
-    : 'Hosts provide shared resources; independent AX instances provide capabilities. A Host may run several AX instances, and an AX can serve multiple Goals through isolated Sessions; execution slots, workspaces and shared resources constrain concurrency. AXCrew owns scheduling, ownership, leases and recovery; AX keeps its reasoning and execution loop. The desktop workbench provides collaboration, nodes and execution activity views.'}
->
-  <div class="panel-dark p-6 sm:p-8">
-    <p class="font-mono text-sm leading-8 text-fog">{z
-      ? '任务分解 → 能力调度 → 跨机器执行 → Event / Artifact 回传 → 状态持久化 → 失败恢复 / 重新规划 → 继续执行'
-      : 'Decompose → capability scheduling → cross-machine execution → Event / Artifact return → persisted state → recovery / replanning → continue'}</p>
-    <p class="mt-4 text-sm leading-7 text-fog-2">{z
-      ? 'Durable Task、Event、Artifact 和 Workflow State 保存在 AXCrew。各 AX 异步拉取工作，不依赖高频直接通信，也不要求任何 Coordinator Agent 持续存活。项目按逻辑身份映射到各机器路径，每次执行使用隔离工作区。现有单机 AX 与设备控制继续独立使用。'
-      : 'AXCrew retains durable Tasks, Events, Artifacts and Workflow State. AX workers pull work asynchronously without direct peer communication or a permanently live Coordinator Agent. Logical project identities map to machine-local paths and isolated execution workspaces. Existing single-machine AX and device controls remain available.'}</p>
-    <p class="mt-4 font-mono text-xs text-fog-2">ax crew worker worker.json</p>
+    <div class="mt-14 grid gap-px bg-[var(--color-border)] md:grid-cols-3">
+      {
+        IDENTITIES.map((s, i) => (
+          <Reveal delay={i * 80}>
+            <div class="h-full bg-[var(--color-bg)] p-8">
+              <p class="h3 mb-3">{s.t}</p>
+              <p class="text-sm leading-relaxed text-[var(--color-text-2)]">{s.d}</p>
+            </div>
+          </Reveal>
+        ))
+      }
+    </div>
   </div>
-</Section>
+</section>
+
+<!-- 03 · the control surface -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '03 · 控制面' : '03 · the surface'}</p>
+      <h2 class="h2 mb-10 max-w-2xl text-balance">
+        {z ? '桌面端调度，手机审批。' : 'Schedule on the desktop. Approve from your phone.'}
+      </h2>
+    </Reveal>
+
+    <Reveal delay={80}>
+      <CrewUI lang={lang} />
+    </Reveal>
+
+    <div class="mt-14 grid gap-x-14 gap-y-0 md:grid-cols-2">
+      {
+        DESKTOP.map((d, i) => (
+          <Reveal delay={(i % 2) * 70}>
+            <div class="border-t border-[var(--color-border)] py-7">
+              <h3 class="h3 mb-2">{d.t}</h3>
+              <p class="text-sm leading-relaxed text-[var(--color-text-2)]">{d.d}</p>
+            </div>
+          </Reveal>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<!-- 04 · work -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '04 · 工作' : '04 · work'}</p>
+      <h2 class="h2 max-w-2xl text-balance">
+        {z ? '任务找到有能力的机器。' : 'Work finds a machine that can do it.'}
+      </h2>
+    </Reveal>
+
+    <div class="mt-14 grid gap-x-14 gap-y-0 md:grid-cols-2">
+      {
+        WORK.map((w, i) => (
+          <Reveal delay={(i % 2) * 70}>
+            <div class="border-t border-[var(--color-border)] py-7">
+              <h3 class="h3 mb-2">{w.t}</h3>
+              <p class="text-sm leading-relaxed text-[var(--color-text-2)]">{w.d}</p>
+            </div>
+          </Reveal>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<!-- 05 · durable collaboration -->
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x section-y">
+    <Reveal>
+      <p class="label mb-4 block">{z ? '05 · 持久协作' : '05 · durable collaboration'}</p>
+      <h2 class="h2 max-w-2xl text-balance">
+        {z ? '可选的一层，让工作跨越进程存活。' : 'An optional layer that lets work outlive a process.'}
+      </h2>
+      <p class="mt-5 max-w-xl text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+        {z
+          ? '这是显式开启的能力。不开启时，单机 AX 与设备控制完全独立可用。'
+          : 'This is opt-in. Without it, single-machine AX and device controls work entirely on their own.'}
+      </p>
+    </Reveal>
+
+    <div class="mt-14 grid gap-px bg-[var(--color-border)] sm:grid-cols-2 lg:grid-cols-4">
+      {
+        DURABLE.map((s, i) => (
+          <Reveal delay={i * 60}>
+            <div class="h-full bg-[var(--color-bg)] p-7">
+              <p class="h3 mb-2.5">{s.t}</p>
+              <p class="text-sm leading-relaxed text-[var(--color-text-2)]">{s.d}</p>
+            </div>
+          </Reveal>
+        ))
+      }
+    </div>
+
+    <div class="mt-14 grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-20">
+      <Reveal>
+        <div>
+          <p class="h3 mb-6">{z ? '恢复是怎么成立的' : 'How recovery actually works'}</p>
+          <dl class="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+            {
+              RECOVERY.map((r) => (
+                <div class="py-5">
+                  <dt class="text-[0.875rem] font-medium text-[var(--color-text)] mb-1.5">{r.t}</dt>
+                  <dd class="text-sm leading-relaxed text-[var(--color-text-2)]">{r.d}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+      </Reveal>
+
+      <Reveal delay={100}>
+        <div>
+          <p class="h3 mb-6">{z ? '启动一个 Worker' : 'Starting a worker'}</p>
+          <CodeBlock code="ax crew worker worker.json" label="ax" lang="sh" />
+          <p class="datum mt-4">
+            {z
+              ? '需要 AX 0.3.7 及以上的 Worker。每次执行使用隔离工作区；失败后按租约重新分配。'
+              : 'Requires AX 0.3.7+ workers. Each execution gets an isolated workspace; after a failure the lease is reassigned.'}
+          </p>
+        </div>
+      </Reveal>
+    </div>
+  </div>
+</section>
+
+<!-- 06 · limits -->
+<section>
+  <div class="container-x section-y">
+    <div class="grid gap-10 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
+      <Reveal>
+        <div>
+          <p class="label mb-4 block">{z ? '06 · 已知限制' : '06 · known limits'}</p>
+          <h2 class="h2 text-balance">
+            {z ? '边界就要写清楚。' : 'The boundary, stated plainly.'}
+          </h2>
+        </div>
+      </Reveal>
+
+      <Reveal delay={80}>
+        <ul class="divide-y divide-[var(--color-border)] border-y border-[var(--color-border)]">
+          {
+            LIMITS.map((l) => (
+              <li class="flex items-start gap-3 py-4">
+                <span class="mt-[0.55em] h-1 w-1 shrink-0 rounded-full bg-[var(--color-text-3)]" />
+                <span class="text-sm leading-relaxed text-[var(--color-text-2)]">{l}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </Reveal>
+    </div>
+  </div>
+</section>

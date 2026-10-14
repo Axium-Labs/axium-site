@@ -9,41 +9,48 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 ---
 
-<footer class="hairline-dark-t bg-void text-fog">
-  <div class="container-x pt-16 pb-10">
-    <div class="flex flex-wrap items-end justify-between gap-8 hairline-dark-b pb-12">
+<footer class="border-t border-[var(--color-border)] bg-[var(--color-bg-raised)]">
+  <div class="container-x py-14">
+
+    <div class="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+
       <div>
-        <p class="kicker kicker-dark">AXIUM</p>
-        <p class="mt-4 max-w-sm text-2xl font-semibold tracking-[-0.02em]">
-          {lang === 'zh' ? '在真实机器上运行的代理。' : 'Agents that run on real machines.'}
+        <div class="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" class="text-[var(--color-text)]">
+            <g fill="currentColor">
+              <rect x="2" y="0" width="2" height="2"></rect>
+              <rect x="6" y="0" width="2" height="2"></rect>
+              <rect x="1" y="1" width="6" height="1"></rect>
+              <rect x="2" y="2" width="4" height="1"></rect>
+              <rect x="1" y="3" width="6" height="3"></rect>
+              <rect x="0" y="4" width="8" height="2"></rect>
+              <rect x="2" y="6" width="4" height="1"></rect>
+            </g>
+            <g fill="var(--color-bg-raised)">
+              <rect x="3" y="3" width="1" height="1"></rect>
+              <rect x="6" y="3" width="1" height="1"></rect>
+            </g>
+          </svg>
+          <span class="font-display text-[1.0625rem] tracking-[-0.01em]">AXIUM</span>
+        </div>
+        <p class="mt-4 max-w-[22rem] text-sm leading-relaxed text-[var(--color-text-2)]">
+          {lang === 'zh'
+            ? '在你拥有的机器上运行代理，在你的掌控下协同工作。'
+            : 'Agents that run on the machines you own, coordinated under your control.'}
         </p>
       </div>
-      <svg width="40" height="40" viewBox="0 0 16 16" aria-hidden="true" class="opacity-80">
-        <g fill="#eceae6">
-          <rect x="2" y="0" width="2" height="2" />
-          <rect x="6" y="0" width="2" height="2" />
-          <rect x="1" y="1" width="6" height="1" />
-          <rect x="2" y="2" width="4" height="1" />
-          <rect x="1" y="3" width="6" height="3" />
-          <rect x="0" y="4" width="8" height="2" />
-          <rect x="2" y="6" width="4" height="1" />
-        </g>
-        <g fill="#0d0d0e">
-          <rect x="3" y="3" width="1" height="1" />
-          <rect x="6" y="3" width="1" height="1" />
-        </g>
-      </svg>
-    </div>
 
-    <div class="grid grid-cols-2 gap-10 py-12 md:grid-cols-3">
       {
         FOOTER_COLS.map((col) => (
           <div>
-            <p class="mono-micro mb-5 text-fog-2">{col.title[lang]}</p>
-            <ul class="space-y-3">
+            <p class="label mb-4 block">{col.title[lang]}</p>
+            <ul class="space-y-2.5">
               {col.links.map((l) => (
                 <li>
-                  <a href={localized(l.href, lang)} class="text-sm text-fog/85 transition-colors duration-200 hover:text-fog">
+                  <a
+                    href={localized(l.href, lang)}
+                    class="text-[0.8125rem] text-[var(--color-text-2)] transition-colors duration-150 hover:text-[var(--color-text)]"
+                  >
                     {l.label[lang]}
                   </a>
                 </li>
@@ -54,11 +61,9 @@ const { lang = 'en' } = Astro.props;
       }
     </div>
 
-    <div class="hairline-dark-t flex flex-col gap-3 pt-6 md:flex-row md:items-center md:justify-between">
-      <p class="mono-micro text-fog-2">© 2026 AXIUM · agent infrastructure</p>
-      <p class="mono-micro text-fog-2">
-        AX — Agent Runtime&ensp;·&ensp;AXCrew — Agent Orchestration
-      </p>
+    <div class="mt-12 flex flex-col gap-2 border-t border-[var(--color-border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
+      <p class="mono-micro">© 2026 AXIUM</p>
+      <p class="mono-micro">AX {lang === 'zh' ? '代理运行时' : 'runtime'} · AXCrew {lang === 'zh' ? '控制平面' : 'control plane'}</p>
     </div>
   </div>
 </footer>

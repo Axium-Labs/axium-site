@@ -6,13 +6,28 @@ interface Props {
   meta?: string[];
 }
 
-const { kicker, title, lead } = Astro.props;
+const { kicker, title, lead, meta } = Astro.props;
 ---
 
-<section class="hairline-b bg-paper">
-  <div class="container-x section-pad">
-    <p class="kicker">{kicker}</p>
-    <h1 class="display mt-5 max-w-4xl">{title}</h1>
-    {lead && <p class="lede mt-7 max-w-2xl">{lead}</p>}
+<section class="border-b border-[var(--color-border)] bg-[var(--color-bg)]">
+  <div class="container-x pt-14 pb-12 md:pt-20 md:pb-16">
+    <p class="label mb-5 block">{kicker}</p>
+    <h1 class="display-serif max-w-[20ch] text-balance">{title}</h1>
+    {
+      lead && (
+        <p class="mt-6 max-w-xl text-[1.0625rem] leading-relaxed text-[var(--color-text-2)]">
+          {lead}
+        </p>
+      )
+    }
+    {
+      meta && meta.length > 0 && (
+        <ul class="mt-10 flex flex-wrap gap-x-8 gap-y-2 border-t border-[var(--color-border)] pt-6">
+          {meta.map((m) => (
+            <li class="datum">{m}</li>
+          ))}
+        </ul>
+      )
+    }
   </div>
 </section>

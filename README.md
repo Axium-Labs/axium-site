@@ -11,6 +11,11 @@ almost no shadow, no AI-SaaS gradients, no glassmorphism, no card stacks.
 
 ## Commands
 
+The download page distinguishes source-level Linux/macOS build/install adapters
+from actually published archives and installers. New platform packages require
+native validation and publication; existing release badges/links are unchanged.
+This follows AX and AXCrew `docs/platforms.md`.
+
 Sandbox copy in the AX page and documentation overview distinguishes file/terminal
 confinement, application/site access and action approval. Native OS sandbox support
 currently requires Linux; Windows/macOS native backends remain unavailable. This
@@ -44,9 +49,8 @@ The site is fully bilingual, route-level (static, no client state):
 - **Policy:** terminal output, CLI commands, code, hostnames and node ids stay
   English — exactly as they appear in the real tools. UI chrome (headings,
   lede, labels, tables, nav, footer) is translated.
-- The React islands take `lang` as a prop (`<FleetNetwork client:visible
-  lang={lang} />`) so the fleet node names / flow labels follow the page
-  language.
+- The React islands take `lang` as a prop (`<TerminalHero client:visible
+  lang={lang} />`) so any language-dependent labels follow the page language.
 
 ## Tech Stack
 
@@ -55,95 +59,92 @@ The site is fully bilingual, route-level (static, no client state):
 | Framework | Astro 7 (static output) |
 | Language | TypeScript (strict) |
 | Styling | Tailwind CSS v4 (`@theme` tokens in `src/styles/global.css`) |
-| Interaction | React 19 islands, opt-in only — `FleetNetwork` (live topology) + `InstallCommand` (platform tabs) |
+| Interaction | React 19 islands, opt-in only — `InstallCommand` (platform tabs) + `TerminalHero` (animated terminal) |
 | Fonts | Geist Sans + Geist Mono (`@fontsource`) |
 | Deploy | Cloudflare Pages (native static, output `dist/`) |
 
-## Design System
+## Design System (current, 2026-10-14)
 
-All tokens live in `src/styles/global.css`:
+The site is **dark by default** — a deep navy palette with an editorial serif
+display face, in the spirit of pi.dev.
 
-- **Colors** — paper / paper-2 / ink / ink-2 / ink-3 / void / void-2 / fog / fog-2 /
-  line / line-dark / line-dark-2 / ok / warn / err / diff. Warm white base, black
-  sections, no hues.
-- **Typography** — `.kicker`, `.display`, `.h2`, `.h3`, `.lede`, `.datum`,
-  `.mono-micro`. Sans/mono pairing; large display sizes; tight tracking on display,
-  wide tracking on labels.
-- **Spacing** — 8px rhythm, `container-x` (fluid padding), `section-pad`
-  (`clamp(4.5rem, 10vw, 8rem)`), generous whitespace.
-- **Borders** — 1px hairlines (`hairline-b`, `hairline-t`, `hairline-dark-b`),
-  light and dark variants.
-- **Backgrounds** — `.grid-bg` / `.grid-bg-light` faint 32px grid (engineering feel).
-- **Motion** — 150–400ms transitions only (reveal, pulse, edge-flow, packet-out,
-  packet-back, blink); `prefers-reduced-motion: reduce` globally downgrades to none.
-- **Radius / shadow** — intentionally almost none.
-- **Terminal style** — `.term`, `.term-cmd/-ok/-warn/-err/-dim/-focus/-diff`,
-  `panel-dark`, `panel-light`, `CursorBlink`, `@keyframes blink`.
+Tokens live in `src/styles/global.css`:
+
+- **Colors** — navy ramp `--color-navy-50…950`, wired into semantic tokens (`--color-bg` `#171a28`, `--color-bg-raised`, `--color-bg-sunken`, `--color-text`, `--color-text-2`, `--color-text-3`, `--color-border`, `--color-border-strong`) plus code/terminal surfaces (`--color-void`, `--color-void-raised`, `--color-void-border`, `--color-void-text`, `--color-void-text-2`). Accent is a teal-green (`--color-accent` `#4da87a`) that reads on dark. Legacy aliases (`bg-paper`, `text-ink`, `panel-dark`, `border-line`, …) still resolve, so older markup keeps working.
+- **Typography** — `.label` (mono, all-caps, tracked), `.display-serif` (Newsreader variable, italic — section headings), `.display-serif-lg` (centred hero), `.display` / `.display-sm` (sans, kept for compatibility), `.h2`, `.h3`, `.prose-body` (long-form explanatory copy), `.chip` (inline code chip), `.datum`, `.mono-micro`. Sans is Geist, mono is Geist Mono, display is Newsreader Variable.
+- **Spacing** — `container-x` (86rem max), `section-y` (clamp vertical rhythm), 8px base unit.
+- **Borders** — 1px hairlines from `--color-border` / `--color-border-strong`; dark-surface variant `divider-dark-b`.
+- **Texture** — `.grid-bg` paints a faint 34px engineering grid; `.grid-fade` masks it toward the edges. Used behind the homepage hero only.
+- **Motion** — `Reveal.astro` scroll-entrance (progressive enhancement: content is visible by default, JS arms and fires the IntersectionObserver). `cursor-blink`, `pulse`. All motion respects `prefers-reduced-motion`.
+- **Surfaces** — `.term-surface` (deeper navy panel for terminal output), `.surface`, `.surface-sunken`.
 
 ## Homepage Narrative
 
-The homepage is one story, not a feature list: **AX runs agents on the machines
-you own; AXCrew is the control plane that connects them.** The visitor should
-get it in five seconds — nothing else.
+The homepage is **pi.dev-shaped**: one centred hero, then the argument, then a
+run of paired sections where a concrete artefact sits next to the reasoning.
 
-Homepage sections (single source of demo data: `src/lib/topology.ts`):
+| # | Section | Left column | Right column |
+|---|---|---|---|
+| — | Hero | — | Centred: serif italic headline, one-line claim, install command, version links. Faint grid texture behind. |
+| — | Why AX? | — | Four claims (state stays local / kernel owns mechanism / one binary one loop / agents everywhere, one place to run them) |
+| 01 | Context | `ax · context` panel | Budget-derived selection, history never deleted, `[ax-progress]` |
+| 02 | Tools & permissions | `ax · permission` panel | `ToolPermission`, deny > ask > allow, leases and concurrency |
+| 03 | Durability | `ax · session` panel | Checkpoint before advancing, SQLite + JSONL, per-project store |
+| 04 | Capabilities | `ax · capabilities` panel | Skills lexical routing, MCP transports, memory scopes |
+| 05 | Models | `ax · /model` panel | Dynamic catalog, `/model`, `ModelProvider` trait |
+| 06 | Control plane | `ax crew` panel | AXCrew pairing, outbound WSS, independent instances |
+| — | Close | — | Centred re-install + links |
 
-| # | Section | What it shows |
-|---|---|---|
-| Hero | — | "One agent system. Across every machine you own." — headline + lede + **the install command right under the lede** (real URLs from the AX repo), then the **signature visual**: `FleetNetwork`, a large live topology (machines you own around the AXCrew control plane) with ONE task cycling task → route → execute → result. No telemetry. |
-| 01 | Send work where it belongs | The one complete real scenario (`SendWork`): `ax run "optimize the sort benchmark"` — laptop writes the fix, AXCrew routes the build to the server, routes the bench to the GPU box, the result returns. Merges the old Fleet + Delegate sections into a single journey. |
-| 02 | Control every machine | `CrewUI` — the real AXCrew product surfaces: the desktop app (crews / agents / tasks / approvals) and the Android control client (fleet / tasks / approvals). No terminal-table substitute. |
-| 03 | Connected. Not merged. | `Boundaries` — four concepts, one line each: workspace / sandbox / permissions / device identity. No fleet repetition. |
+Sections alternate side on `lg` (`flip` on `ScrollSection`), so the page doesn't
+read as a uniform list. There is no trailing "Boundaries" block.
 
 Rules:
-
-- The fleet (Laptop / Server / GPU / Cloud) appears in the Hero topology and in
-  the Send-work scenario — nowhere else. No repeated node lists, no task ids,
-  no fake latency, no timestamps.
-- The only React islands are `FleetNetwork` (the live task flow) and
-  `InstallCommand` (tabs + copy). Everything else is static Astro.
-- Capabilities (Skills / MCP / Memory / Providers / CLI) live in the docs
-  (`/docs`); `/ax` and `/crew` keep only their four/five product themes.
+- Artefacts are **real**: every command, flag and behaviour shown comes from `ax/docs` or `axcrew/docs`. No invented output, no fake latency, no task ids.
+- Section text is grounded in the kernel contract — budget-derived context, declared permissions, checkpointing, lazy loading, provider neutrality.
+- React islands are `InstallCommand` and `TerminalHero` only. All the home-page panels are static Astro (`TermPanel`), so they render without hydration.
+- No marketing filler.
 
 ## Structure
 
 ```
 src/
-├─ layouts/Base.astro        # shell: fonts, SEO, lang, header/footer
+├─ layouts/Base.astro        # shell: fonts, SEO, lang, header/footer (dark)
 ├─ components/
-│  ├─ Header.astro           # top nav + EN|中文 switch (mobile: horizontal scroll)
-│  ├─ Footer.astro           # dark footer (bilingual)
-│  ├─ Section.astro          # light / dark / paper2 wrapper — unified spacing & reading width
-│  ├─ PageHero.astro         # subpage hero
+│  ├─ Header.astro           # sticky top nav + EN|中文 switch
+│  ├─ Footer.astro           # footer (bilingual)
+│  ├─ Section.astro          # light / raised / dark tone wrapper
+│  ├─ PageHero.astro         # subpage hero (kicker + serif display + lede + meta)
+│  ├─ ScrollSection.astro    # paired artefact + explanation section (home)
+│  ├─ TermPanel.astro        # static terminal panel: title bar + body
 │  ├─ CodeBlock.astro        # code block + copy
 │  ├─ CopyButton.astro
-│  ├─ SendWork.astro         # the one complete task journey (home + /crew)
-│  ├─ CrewUI.astro           # AXCrew desktop + mobile product UI mock (home + /crew)
-│  ├─ Boundaries.astro       # workspace / sandbox / permissions / identity (home + /crew)
+│  ├─ Reveal.astro           # scroll-entrance animation (progressive enhancement)
+│  ├─ CrewUI.astro           # AXCrew orchestration panel: AX instances + approvals + event stream
 │  └─ pages/                 # one bilingual component per route body
-│     ├─ Home.astro          # / and /zh — 5 movements (hero / send work / control / boundaries / install)
-│     ├─ AxPage.astro        # /ax and /zh/ax — run anywhere · connect · execute locally · keep state local
-│     ├─ CrewPage.astro      # /crew and /zh/crew — connect · delegate · control · observe · security
-│     ├─ DocsPage.astro      # /docs and /zh/docs
-│     ├─ DownloadPage.astro  # /download and /zh/download
-│     └─ ChangelogPage.astro # /changelog and /zh/changelog
+│     ├─ Home.astro          # / — hero · why · 6 paired sections · close
+│     ├─ AxPage.astro        # /ax — runtime loop / tools / scopes / state / sandbox
+│     ├─ CrewPage.astro      # /crew — connect / identities / surface / work / durable / limits
+│     ├─ DocsPage.astro      # /docs — sticky sidebar + section list
+│     ├─ DownloadPage.astro  # /download — install command + platform table + AXCrew
+│     └─ ChangelogPage.astro # /changelog — AX + AXCrew side by side
 ├─ components/islands/       # React — only where state is needed
-│  ├─ FleetNetwork.tsx       # live fleet topology: machines → AXCrew → AX, one task cycling (home hero + /crew)
-│  └─ InstallCommand.tsx     # platform tabs + copy
+│  ├─ InstallCommand.tsx     # platform tabs + copy
+│  └─ TerminalHero.tsx       # animated terminal cycling real AX command sequences
 ├─ lib/                      # data layer (all copy lives here)
 │  ├─ i18n.ts                # Lang / B / b() / pick() / path helpers
-│  ├─ site.ts                # SITE / NAV / INSTALL / FOOTER_COLS
-│  ├─ topology.ts            # single demo data model: machines · flow steps · send-work scenario · crew UI · boundaries
-│  └─ content.ts             # docs sections + changelog
+│  ├─ site.ts                # SITE (axVersion=0.3.10, crewVersion=0.3.5) / NAV / INSTALL / FOOTER_COLS
+│  ├─ topology.ts            # demo data: TASK_JOURNEY, MACHINE_STATES, CREW_UI (legacy exports kept)
+│  └─ content.ts             # DOCS_SECTIONS + CHANGELOG (AX through 0.3.10, AXCrew through 0.3.5)
 ├─ pages/                    # EN: /  /ax  /crew  /docs  /download  /changelog
 ├─ pages/zh/                 # 中文: /zh …
-└─ styles/global.css         # design system (Tailwind v4 @theme)
+└─ styles/global.css         # dark design system (Tailwind v4 @theme + legacy aliases)
 ```
 
-Layout system (in `src/styles/global.css`): one page width (`container-x`, 76rem),
-one reading width (`container-reading`, 42rem), one section spacing
-(`section-pad`), plus `container-reading-wide` for wide visuals. Sections no
-longer carry their own ad-hoc widths.
+Notes:
+- `astro.config.mjs` sets `devToolbar: { enabled: false }` — the Astro dev overlay
+  is not shown in local development.
+- `FleetNetwork.tsx`, `SendWork.astro` and `Boundaries.astro` are no longer
+  imported by any page.
 
 ## Content Grounding
 
@@ -151,11 +152,30 @@ Website copy is compiled from the real repositories — `../ax/docs/` and
 `../axcrew/docs/` plus their release notes. Rules:
 
 - Version badges in `src/lib/site.ts` (`axVersion`, `crewVersion`) must match the
-  current real releases (ax v0.3.7, axcrew v0.3.3).
+  current real releases (ax v0.3.10, axcrew v0.3.5).
 - Demo task flows, product UI mocks, docs and changelog entries describe actual
   behavior; when AX/AXCrew behavior changes, update the site accordingly.
 - Do not add marketing filler ("Revolutionize", "Supercharge", …). Voice is short,
   technical, direct.
+
+## Design System (post-refactor, 2026-10-14)
+
+The site was redesigned for a cleaner, more editorial aesthetic. Key changes:
+
+- **CSS tokens** — neutral ramp stays OKLCH-inspired (paper/ink/void/fog), but
+  chroma is reduced and contrast is higher. No warm-sepia tint. Token names unchanged.
+- **Type scale** — added `display-sm` for page heroes; `display` is larger and
+  tighter (-0.038em). Body measure stays 44rem.
+- **Layout** — `container-x` widened to 88rem; `section-pad` slightly larger.
+  Header is now `sticky` with `backdrop-blur`.
+- **Grid backgrounds removed** from section backgrounds; kept only inside terminal
+  panels (`panel-dark.grid-bg`).
+- **Kicker usage reduced** — sections lead with a title, not always a kicker+title+lead
+  triple. Repeated fleet panels removed across pages.
+- **Component: CodeBlock** — `lang` prop kept for display, `copyable` defaults to true.
+- **Data: content.ts** — Changelog updated to AX 0.3.10 / AXCrew 0.3.5, including
+  all missing intermediate releases.
+- **Data: site.ts** — `crewVersion` corrected from 0.3.4 → 0.3.5.
 
 ## Deploy to Cloudflare Pages
 
@@ -182,9 +202,9 @@ before going live:
 | Site domain | `https://axium.dev` | `astro.config.mjs` (`site`) |
 | Install commands | real — `https://raw.githubusercontent.com/Axium-Labs/AX/main/scripts/install.sh` / `install.ps1`, verbatim from the AX repo README | `src/lib/site.ts` (`INSTALL`) |
 
-## Release synchronization (2026-10-05)
+## Release synchronization (2026-10-14)
 
-Product versions: AX 0.3.7 and AXCrew 0.3.3. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
+Product versions: AX 0.3.10 and AXCrew 0.3.5. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
 
 ## Distributed Collaboration content (2026-10-05)
 

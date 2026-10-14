@@ -1,0 +1,47 @@
+---
+/**
+ * ScrollSection — the pi.dev-style pairing used down the whole home page.
+ *
+ * Left  : a concrete artefact (TermPanel with real command output).
+ * Right : the editorial explanation — serif italic heading + prose.
+ *
+ * Alternates side on `lg` via `flip`, so long pages don't feel like a list.
+ */
+interface Props {
+  /** serif italic heading */
+  title: string;
+  /** small mono label above the heading */
+  kicker?: string;
+  /** controls which column the artifact sits in */
+  flip?: boolean;
+  class?: string;
+}
+
+const { title, kicker, flip = false, class: className = '' } = Astro.props;
+---
+
+<section class:list={['border-b border-[var(--color-border)]', className]}>
+  <div class="container-x py-16 md:py-24">
+    <div
+      class:list={[
+        'grid items-start gap-10 lg:grid-cols-2 lg:gap-16',
+        flip && 'lg:[&>*:first-child]:order-2',
+      ]}
+    >
+      <!-- artifact column -->
+      <div>
+        <slot name="demo" />
+      </div>
+
+      <!-- explanation column -->
+      <div class="lg:pt-2">
+        {kicker && <p class="label mb-4 block">{kicker}</p>}
+        <h2 class="display-serif max-w-[22ch] text-balance">{title}</h2>
+        <div class="prose-body mt-6 max-w-[52ch] space-y-5">
+          <slot name="body" />
+        </div>
+        <slot name="cta" />
+      </div>
+    </div>
+  </div>
+</section>
