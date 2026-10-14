@@ -132,9 +132,9 @@ src/
 │  └─ TerminalHero.tsx       # animated terminal cycling real AX command sequences
 ├─ lib/                      # data layer (all copy lives here)
 │  ├─ i18n.ts                # Lang / B / b() / pick() / path helpers
-│  ├─ site.ts                # SITE (axVersion=0.3.10, crewVersion=0.3.5) / NAV / INSTALL / FOOTER_COLS
+│  ├─ site.ts                # SITE (axVersion=0.3.11, crewVersion=0.3.6) / NAV / INSTALL / FOOTER_COLS
 │  ├─ topology.ts            # demo data: TASK_JOURNEY, MACHINE_STATES, CREW_UI (legacy exports kept)
-│  └─ content.ts             # DOCS_SECTIONS + CHANGELOG (AX through 0.3.10, AXCrew through 0.3.5)
+│  └─ content.ts             # DOCS_SECTIONS + CHANGELOG (AX through 0.3.11, AXCrew through 0.3.6)
 ├─ pages/                    # EN: /  /ax  /crew  /docs  /download  /changelog
 ├─ pages/zh/                 # 中文: /zh …
 └─ styles/global.css         # dark design system (Tailwind v4 @theme + legacy aliases)
@@ -152,7 +152,7 @@ Website copy is compiled from the real repositories — `../ax/docs/` and
 `../axcrew/docs/` plus their release notes. Rules:
 
 - Version badges in `src/lib/site.ts` (`axVersion`, `crewVersion`) must match the
-  current real releases (ax v0.3.10, axcrew v0.3.5).
+  current real releases (ax v0.3.11, axcrew v0.3.6).
 - Demo task flows, product UI mocks, docs and changelog entries describe actual
   behavior; when AX/AXCrew behavior changes, update the site accordingly.
 - Do not add marketing filler ("Revolutionize", "Supercharge", …). Voice is short,
@@ -173,9 +173,9 @@ The site was redesigned for a cleaner, more editorial aesthetic. Key changes:
 - **Kicker usage reduced** — sections lead with a title, not always a kicker+title+lead
   triple. Repeated fleet panels removed across pages.
 - **Component: CodeBlock** — `lang` prop kept for display, `copyable` defaults to true.
-- **Data: content.ts** — Changelog updated to AX 0.3.10 / AXCrew 0.3.5, including
+- **Data: content.ts** — Changelog updated to AX 0.3.11 / AXCrew 0.3.6, including
   all missing intermediate releases.
-- **Data: site.ts** — `crewVersion` corrected from 0.3.4 → 0.3.5.
+- **Data: site.ts** — `axVersion` / `crewVersion` bumped to 0.3.11 / 0.3.6.
 
 ## Deploy to Cloudflare Pages
 
@@ -204,7 +204,7 @@ before going live:
 
 ## Release synchronization (2026-10-14)
 
-Product versions: AX 0.3.10 and AXCrew 0.3.5. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
+Product versions: AX 0.3.11 and AXCrew 0.3.6. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
 
 ## Distributed Collaboration content (2026-10-05)
 

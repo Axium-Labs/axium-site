@@ -13,6 +13,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.3.11',
+    product: 'AX',
+    entries: [
+      b('Native Windows UIA, Linux AT-SPI and macOS Accessibility desktop adapters', '原生 Windows UIA、Linux AT-SPI 与 macOS Accessibility 桌面适配器'),
+      b('Unix terminal login shell selection (default/sh/bash/zsh/fish)', 'Unix 终端登录 shell 选择（default/sh/bash/zsh/fish）'),
+      b('Windows, Linux and macOS release archives built by CI', '由 CI 构建的 Windows、Linux 与 macOS 发布归档'),
+    ],
+  },
+  {
     version: '0.3.10',
     product: 'AX',
     entries: [
@@ -90,6 +99,15 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   // AXCrew
+  {
+    version: '0.3.6',
+    product: 'AXCrew',
+    entries: [
+      b('Windows, Linux and macOS native builds from one React/Tauri client', '同一 React/Tauri 客户端构建 Windows、Linux 与 macOS 原生包'),
+      b('Unix terminal login shell selection and sysinfo system collection', 'Unix 终端登录 shell 选择与 sysinfo 系统采集'),
+      b('All-platform release workflow', '全平台发布工作流'),
+    ],
+  },
   {
     version: '0.3.5',
     product: 'AXCrew',
