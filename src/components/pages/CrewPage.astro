@@ -19,13 +19,13 @@ const z = lang === 'zh';
 /* how a device joins — protocol/api.md, distributed-collaboration.md */
 const CONNECT = z
   ? [
-      { t: '一次性配对码', d: '桌面端或手机签发配对码，设备用它换取身份。之后不再需要人工干预。' },
+      { t: '一次性配对码', d: '桌面端签发一次性配对码，AX 设备用它换取身份。手机另需电脑确认授权，获得可撤销的独立凭证。' },
       { t: 'Ed25519 挑战', d: '每个设备用私钥应答挑战。私钥永不离开设备，Crew 也不保存它。' },
       { t: '出站 WSS', d: '设备主动连出，带心跳与退避重连。不需要入站端口，不需要 SSH，不需要公网地址。' },
       { t: '断线即离线', d: '连接断开就把节点标记为离线，重连后恢复。任务状态由 Crew 一侧持久化，不依赖长连接存活。' },
     ]
   : [
-      { t: 'One-time pairing code', d: 'The desktop or phone issues a code; the device trades it for an identity. After that no manual step is needed.' },
+      { t: 'One-time pairing code', d: 'The desktop issues a one-time code for AX device identity. Phones require local desktop approval and receive individual revocable credentials.' },
       { t: 'Ed25519 challenge', d: 'Each device answers with its private key. That key never leaves the device, and Crew never stores it.' },
       { t: 'Outbound WSS', d: 'Devices connect out with heartbeats and backoff. No inbound port, no SSH, no public address.' },
       { t: 'Offline on disconnect', d: 'A dropped link marks the node offline and resumes on reconnect. Task state is persisted on the Crew side, so it does not depend on a live socket.' },

@@ -100,6 +100,11 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   // AXCrew
   {
+    version: '0.3.7',
+    product: 'AXCrew',
+    entries: [b('Windows x64 patch release; clarify orchestration and recovery documentation', 'Windows x64 补丁发布；明确编排与恢复文档')],
+  },
+  {
     version: '0.3.6',
     product: 'AXCrew',
     entries: [
