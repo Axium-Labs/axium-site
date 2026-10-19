@@ -4,7 +4,7 @@ export const SITE = {
   name: 'AXIUM',
   domain: 'https://axium.dev',
   axVersion: '0.3.12',
-  crewVersion: '0.3.8',
+  crewVersion: '0.3.9',
   tagline: b(
     'One agent system across every machine you own.',
     '一个代理系统，覆盖你拥有的每一台机器。',
