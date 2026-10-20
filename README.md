@@ -151,6 +151,12 @@ Notes:
 Website copy is compiled from the real repositories — `../ax/docs/` and
 `../axcrew/docs/` plus their release notes. Rules:
 
+The subagent documentation describes the current AX source contract: the model
+chooses useful delegation across task domains; ordinary and queue children share
+local depth/concurrency/permission ceilings, and typed inventories alone do not
+start children. This matches `ax/docs/agent-runtime.md` and ADR 0030. Release
+badges remain tied to published versions.
+
 - Version badges in `src/lib/site.ts` (`axVersion`, `crewVersion`) must match the
   current real releases (ax v0.3.11, axcrew v0.3.7).
 - Demo task flows, product UI mocks, docs and changelog entries describe actual

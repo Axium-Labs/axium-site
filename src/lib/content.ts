@@ -244,8 +244,8 @@ export const DOCS_SECTIONS: DocSection[] = [
     id: 'subagents',
     title: b('Subagents', '子代理'),
     body: b(
-      "Delegation is available by default through subagent and subagent_fork. AXCrew\u2019s Plugins \u2192 Agents page controls global/project depth and parallelism: 0 disables delegation, 1 permits direct children, and larger depths permit nested delegation. Children share a concurrency budget and permission ceiling.",
-      '默认提供 subagent 与 subagent_fork 委派工具。AXCrew 的「插件 → 智能体」页可设置全局或项目的深度与并行上限：0 关闭，1 允许直接子智能体，更大的深度允许递归委派。各层共享并行名额与权限上限。',
+      "The main model decides when delegation helps research, writing, analysis or coding. Ordinary subagents and queue children share depth, concurrency and inherited permission ceilings. AXCrew\u2019s Plugins \u2192 Agents page controls global/project limits: depth 0 disables local delegation, 1 permits direct children, and larger depths permit nesting. Data inventories alone do not start children.",
+      '主模型按任务需要判断是否委派，适用于调研、写作、分析和编程。普通子智能体与队列子任务共享深度、并行名额和继承的权限上限。AXCrew 的「插件 → 智能体」页可设置全局或项目限制：深度 0 关闭本地委派，1 允许直接子智能体，更大的深度允许递归。数据清单本身不会自动启动子任务。',
     ),
   },
   {
