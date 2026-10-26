@@ -57,8 +57,8 @@ const ENV_VARS: { name: string; purpose: string }[] = z
         <InstallCommand client:visible />
         <p class="datum mt-4">
           {z
-            ? 'Linux/macOS 的构建与安装适配已并入源码；新平台的归档需要在对应系统上完成验证并发布之后才能下载。'
-            : 'Linux and macOS build/install adapters are merged in source; a new platform archive becomes downloadable only after native validation and publication.'}
+            ? 'Windows、Linux 与 macOS 归档均随本版本发布，安装前会校验 SHA256SUMS。'
+            : 'Windows, Linux and macOS archives ship with this release and are verified against SHA256SUMS before installation.'}
         </p>
       </Reveal>
     </div>
@@ -123,13 +123,13 @@ const ENV_VARS: { name: string; purpose: string }[] = z
         <h2 class="h2 mb-5 text-balance">{z ? '然后装控制平面。' : 'Then the control plane.'}</h2>
         <p class="mb-2 max-w-xl text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
           {z
-            ? 'AXCrew 是连接这些 AX 节点的桌面端与 Android 客户端。桌面源码包含 Windows、Linux（Debian / AppImage）与 macOS（app / DMG）的打包适配。'
-            : 'AXCrew is the desktop and Android client that connects those AX nodes. Desktop source includes Windows, Linux (Debian / AppImage) and macOS (app / DMG) packaging adapters.'}
+            ? 'AXCrew 是连接这些 AX 节点的桌面端与 Android 客户端。桌面版提供 Windows x64、Linux x64/ARM64 与 macOS Intel/Apple Silicon 安装包。'
+            : 'AXCrew is the desktop and Android client that connects those AX nodes. Desktop installers cover Windows x64, Linux x64/ARM64 and macOS Intel/Apple Silicon.'}
         </p>
         <p class="datum mb-8">
           {z
-            ? '当前下载链接只反映已发布的 release；新平台安装包需要原生验证后才会出现。版本 ' + SITE.crewVersion + '。'
-            : 'Download links reflect published releases only; new platform installers appear after native validation. Version ' + SITE.crewVersion + '.'}
+            ? 'macOS 安装包未签名、公证；Android 保持原版本。桌面版本 ' + SITE.crewVersion + '。'
+            : 'macOS installers are unsigned and not notarized; Android is unchanged. Desktop version ' + SITE.crewVersion + '.'}
         </p>
       </Reveal>
 

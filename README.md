@@ -210,7 +210,7 @@ before going live:
 
 ## Release synchronization (2026-10-14)
 
-Product versions: AX 0.3.15 and AXCrew 0.3.11. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
+Product versions: AX 0.3.16 and AXCrew 0.3.12. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
 
 ## Distributed Collaboration content (2026-10-05)
 
@@ -227,3 +227,7 @@ changelog entry or deployment is changed by the workbench development task.
 AXCrew 0.3.7 ships the Windows x64 patch installer and clarifies orchestration and recovery in the README.
 
 AXCrew device-pairing copy distinguishes desktop-issued AX pairing codes from phone credentials approved on the computer.
+
+## Desktop release synchronization (2026-10-27)
+
+AX 0.3.16 provides Windows x64, Linux x64 GNU/musl, Linux ARM64 musl and macOS Intel/Apple Silicon archives. AXCrew 0.3.12 provides Windows x64 NSIS, Linux x64 Debian/AppImage, Linux ARM64 Debian and macOS Intel/Apple Silicon DMGs. Android is unchanged. macOS packages are unsigned and not notarized. Release assets are verified against their shared SHA256SUMS; native builds do not replace manual runtime acceptance on each platform.

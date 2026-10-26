@@ -13,6 +13,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.3.16',
+    product: 'AX',
+    entries: [
+      b('Windows x64, Linux x64 GNU/musl, Linux ARM64 musl and macOS Intel/Apple Silicon release archives', '发布 Windows x64、Linux x64 GNU/musl、Linux ARM64 musl 与 macOS Intel/Apple Silicon 归档'),
+      b('Linux musl archives match the existing installer and updater; all archives share SHA256SUMS', 'Linux musl 归档与现有安装器、更新器匹配；所有归档使用统一 SHA256SUMS'),
+    ],
+  },
+  {
+    version: '0.3.12',
+    product: 'AXCrew',
+    entries: [
+      b('Windows x64 installer, Linux x64 Debian/AppImage, Linux ARM64 Debian and macOS Intel/Apple Silicon DMGs', 'Windows x64 安装器、Linux x64 Debian/AppImage、Linux ARM64 Debian 与 macOS Intel/Apple Silicon DMG'),
+      b('Unified installer checksums; macOS packages are unsigned and not notarized; Android unchanged', '统一安装包校验清单；macOS 包未签名、公证；Android 保持不变'),
+    ],
+  },
+  {
     version: '0.3.11',
     product: 'AX',
     entries: [
