@@ -210,7 +210,7 @@ before going live:
 
 ## Release synchronization (2026-10-14)
 
-Product versions: AX 0.3.11 and AXCrew 0.3.7. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
+Product versions: AX 0.3.15 and AXCrew 0.3.11. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
 
 ## Distributed Collaboration content (2026-10-05)
 
