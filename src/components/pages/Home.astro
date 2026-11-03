@@ -22,52 +22,147 @@ interface Props {
 const { lang = 'en' } = Astro.props;
 const z = lang === 'zh';
 
-const USE_CASES = z
+const FEATURES = z
   ? [
       {
-        title: '用 AX 处理项目里的工作',
-        body: '在终端里让 AX 阅读代码、修改文件、执行命令。会话会保存，也可以在 AXCrew 中打开，查看文件和变更。',
+        title: '按验收条件推进任务',
+        summary: '先说明目标和验收条件，让 AX 根据检查结果继续处理。',
+        product: 'AX · Goal',
+        paragraphs: [
+          '例如修复一个问题时，把相关测试通过作为验收条件。开启 Goal 后，AX 执行任务并检查结果；未达到条件时，把检查发现的问题带回下一轮继续处理。',
+          '可以配置命令等验证器，也可以使用模型验收。遇到需要人工处理的阻塞、暂停或达到预算限制时会停下。Goal 需要主动开启，不会在对话结束后定时唤醒。',
+        ],
+        panel: 'Goal',
+        rows: [
+          { label: '目标', value: '修复问题，并通过相关测试' },
+          { label: '验收', value: '检查测试结果，未通过则继续处理' },
+          { label: '控制', value: '随时查看状态、暂停或取消' },
+        ],
+        command: '/goal status',
+        url: 'https://github.com/Axium-Labs/AX/blob/main/docs/goal.md',
+      },
+      {
+        title: '长项目跨会话继续',
+        summary: '保存项目进度和关键决策，切换会话后继续推进同一个目标。',
+        product: 'AX · Long Project',
+        paragraphs: [
+          '长项目会维护一份工作文档，记录目标、当前进度、已完成工作、待办和关键决策。文档可以查看和编辑，也能导出或导入。',
+          '主动开启 Long Project 后，可按配置自动轮换会话，也可以手动发起交接。下一段会话使用项目文档和检查点接续工作；原有会话历史仍保留。',
+        ],
+        panel: 'Long Project',
+        rows: [
+          { label: '工作文档', value: '目标、进度、待办、关键决策' },
+          { label: '会话交接', value: '按配置自动轮换，或手动交接' },
+          { label: '历史', value: '保留原始记录，按需查看' },
+        ],
+        command: '/goal project show',
+        url: 'https://github.com/Axium-Labs/AX/blob/main/docs/long-project.md',
+      },
+      {
+        title: '把工作经验整理成技能',
+        summary: '从实际任务中提出可复用的做法，由你审核后试用。',
         product: 'AX + AXCrew',
+        paragraphs: [
+          '启用自动学习后，AX 根据本地任务执行记录整理技能候选。比如反复执行的发布步骤，可以被整理成一份供后续任务使用的技能。',
+          '在 AXCrew 中查看候选技能的内容和依据，再决定接受试用或拒绝。候选不会直接变成生效技能；学习数据留在本地，不发送到 Crew 服务器。分析使用已配置的模型。',
+        ],
+        panel: 'Skills',
+        rows: [
+          { label: '来源', value: '本地实际任务的执行记录' },
+          { label: '审核', value: '查看技能内容与依据，接受或拒绝' },
+          { label: '使用', value: '审核通过后试用，再根据实际使用改进' },
+        ],
+        command: null,
+        url: 'https://github.com/Axium-Labs/AX/blob/main/docs/evolution.md',
       },
       {
-        title: '选择模型，接入工具',
-        body: '支持多家模型提供方，可用 API Key 或 OAuth 登录。技能用来保存常用任务的做法，MCP 用来连接外部工具。',
-        product: 'AX',
-      },
-      {
-        title: '在聊天旁边查看网页',
-        body: 'AXCrew 提供网页预览和文件变更审查。本地 Windows AX 可以直接读取、点击和填写预览页面；其他桌面平台目前支持普通预览。',
-        product: 'AXCrew',
-      },
-      {
-        title: '管理多台机器上的 AX',
-        body: '在 AXCrew 中分配任务、查看进度、处理审批。分布式任务会保存检查点；执行任务的 AX 掉线后，另一台满足要求的 AX 可以接手。',
+        title: '多台机器分工，掉线后接手',
+        summary: '根据能力和机器资源安排任务，并保存检查点供后续恢复。',
         product: 'AX + AXCrew',
+        paragraphs: [
+          '把工作拆成有依赖关系的任务，交给已注册的 AX worker。AXCrew 根据能力和机器资源分配工作，前置任务完成后再安排后续任务，并汇总事件和产物。',
+          '执行者掉线、租约到期后，任务可以重新分配。接手的机器需要可用的环境、文件和兼容配置；会话数据库与整个工作区不会自动搬过去，需要人工协调的执行状态会阻止自动恢复。',
+        ],
+        panel: 'AXCrew · Distributed',
+        rows: [
+          { label: '分工', value: '根据能力、资源与任务依赖分配工作' },
+          { label: '留存', value: '任务状态、检查点、事件和发布的产物' },
+          { label: '接手', value: '租约到期后，由符合条件的 AX 恢复任务' },
+        ],
+        command: 'ax crew worker worker.json',
+        url: 'https://github.com/Axium-Labs/AXCrew/blob/main/docs/distributed-collaboration.md',
       },
     ]
   : [
       {
-        title: 'Work on your project with AX',
-        body: 'Ask AX to read code, edit files and run commands from your terminal. Conversations are saved, and you can also open them in AXCrew to review files and changes.',
+        title: 'Work toward acceptance criteria',
+        summary: 'Define the target and its checks, then let AX continue based on the results.',
+        product: 'AX · Goal',
+        paragraphs: [
+          'For a bug fix, you can require the relevant tests to pass. With Goal enabled, AX performs the work and checks the result. When a check fails, its findings inform the next round of work.',
+          'Configure validators such as commands, or use model-based acceptance. Work stops for external blockers, a pause or an exhausted budget. Goal is opt-in and does not periodically wake a finished conversation.',
+        ],
+        panel: 'Goal',
+        rows: [
+          { label: 'Target', value: 'Fix the issue and pass the relevant tests' },
+          { label: 'Acceptance', value: 'Check the results; continue if they fail' },
+          { label: 'Control', value: 'Inspect status, pause or cancel' },
+        ],
+        command: '/goal status',
+        url: 'https://github.com/Axium-Labs/AX/blob/main/docs/goal.md',
+      },
+      {
+        title: 'Continue a long project across sessions',
+        summary: 'Keep progress and decisions available when work moves to another session.',
+        product: 'AX · Long Project',
+        paragraphs: [
+          'Long Project maintains a working document with the objective, current progress, completed work, remaining tasks and key decisions. You can inspect, edit, export and import it.',
+          'Enable Long Project to use configured automatic session rotation or request a manual handoff. The next session continues with the project document and checkpoints, while earlier conversation history remains available.',
+        ],
+        panel: 'Long Project',
+        rows: [
+          { label: 'Working document', value: 'Objective, progress, tasks and decisions' },
+          { label: 'Handoff', value: 'Configured rotation or a manual request' },
+          { label: 'History', value: 'Original records remain available' },
+        ],
+        command: '/goal project show',
+        url: 'https://github.com/Axium-Labs/AX/blob/main/docs/long-project.md',
+      },
+      {
+        title: 'Turn experience into reusable skills',
+        summary: 'Review approaches proposed from actual work before trying them on later tasks.',
         product: 'AX + AXCrew',
+        paragraphs: [
+          'With automatic learning enabled, AX uses local task execution records to propose skills. Repeated release steps, for example, can become instructions for future tasks.',
+          'Inspect each proposed skill and its evidence in AXCrew, then accept it for trial or reject it. Candidates do not become usable skills without review. Learning data stays local to AX rather than going to the Crew server; analysis uses your configured model.',
+        ],
+        panel: 'Skills',
+        rows: [
+          { label: 'Source', value: 'Records from actual local tasks' },
+          { label: 'Review', value: 'Inspect instructions and evidence; accept or reject' },
+          { label: 'Use', value: 'Trial after review, then refine from actual use' },
+        ],
+        command: null,
+        url: 'https://github.com/Axium-Labs/AX/blob/main/docs/evolution.md',
       },
       {
-        title: 'Choose models and connect tools',
-        body: 'Connect to supported model providers with an API key or OAuth. Use skills for recurring tasks and MCP to connect external tools.',
-        product: 'AX',
-      },
-      {
-        title: 'Preview pages alongside chat',
-        body: 'AXCrew includes web preview and file change review. Local Windows AX can read, click and fill preview pages. Other desktop platforms currently support user preview.',
-        product: 'AXCrew',
-      },
-      {
-        title: 'Manage AX across machines',
-        body: 'Assign tasks, follow progress and handle approvals in AXCrew. Distributed tasks save checkpoints so another AX with the required capabilities and resources can take over if a worker goes offline.',
+        title: 'Distribute work and recover after a disconnect',
+        summary: 'Assign tasks by capabilities and machine resources, with checkpoints for recovery.',
         product: 'AX + AXCrew',
+        paragraphs: [
+          'Define tasks and their dependencies for enrolled AX workers. AXCrew assigns work by capabilities and machine resources, schedules dependent tasks after their prerequisites finish, and collects events and artifacts.',
+          'If a worker disconnects and its lease expires, the task can be reassigned. Recovery requires the right environment, files and compatible configuration. Session databases and entire workspaces are not transferred automatically; states requiring reconciliation block automatic recovery.',
+        ],
+        panel: 'AXCrew · Distributed',
+        rows: [
+          { label: 'Assignment', value: 'Capabilities, resources and task dependencies' },
+          { label: 'Persistence', value: 'Task state, checkpoints, events and published artifacts' },
+          { label: 'Recovery', value: 'An eligible AX resumes after the lease expires' },
+        ],
+        command: 'ax crew worker worker.json',
+        url: 'https://github.com/Axium-Labs/AXCrew/blob/main/docs/distributed-collaboration.md',
       },
     ];
-
 
 ---
 
@@ -126,7 +221,7 @@ const USE_CASES = z
   <div class="container-x section-y">
     <Reveal>
       <h2 class="display-serif max-w-[24ch] text-balance">
-        {z ? 'AX 和 AXCrew 能做什么' : 'What AX and AXCrew do'}
+        {z ? '用 AX 和 AXCrew 持续推进工作' : 'Working with AX and AXCrew'}
       </h2>
       <p class="mt-6 max-w-[55ch] text-[1.0625rem] leading-relaxed text-[var(--color-text-2)]">
         {z
@@ -135,12 +230,12 @@ const USE_CASES = z
       </p>
     </Reveal>
     <div class="mt-12 grid gap-x-14 md:grid-cols-2">
-      {USE_CASES.map((item, i) => (
+      {FEATURES.map((item, i) => (
         <Reveal delay={(i % 2) * 70}>
           <div class="border-t border-[var(--color-border)] py-7">
             <p class="label mb-3">{item.product}</p>
             <h3 class="font-display text-[1.375rem] leading-snug tracking-[-0.01em] text-[var(--color-text)]">{item.title}</h3>
-            <p class="mt-3 max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">{item.body}</p>
+            <p class="mt-3 max-w-[48ch] text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">{item.summary}</p>
           </div>
         </Reveal>
       ))}
@@ -152,171 +247,49 @@ const USE_CASES = z
   </div>
 </section>
 
-<!-- ════════════════ 01 · DURABILITY ════════════════ -->
-<ScrollSection
-  kicker={z ? '01 · 会话' : '01 · sessions'}
-  title={z ? '保存和继续会话' : 'Save and continue conversations'}
->
-  <TermPanel slot="demo" title="ax · session" meta={z ? '命令示例' : 'example commands'}>
-    <p class="mb-3 text-[var(--color-void-text-2)]">{z ? '继续已有会话' : 'Continue a saved conversation'}</p>
-    <p>$ ax run --session &lt;id&gt; "keep going"</p>
-    <div class="mt-5 border-t border-[var(--color-void-border)] pt-4">
-      <p class="mb-3 text-[var(--color-void-text-2)]">{z ? '导出备份，检查待导入内容' : 'Export a backup and inspect it before import'}</p>
-      <p>$ ax export backup.axpack</p>
-      <p class="mt-2">$ ax import backup.axpack --dry-run</p>
+<!-- Four product capabilities -->
+{FEATURES.map((feature, index) => (
+  <ScrollSection
+    flip={index % 2 === 1}
+    kicker={`${String(index + 1).padStart(2, '0')} · ${feature.product}`}
+    title={feature.title}
+  >
+    <TermPanel slot="demo" title={feature.panel}>
+      <p class="mb-5 text-[var(--color-void-text-2)]">{z ? '工作方式' : 'How it works'}</p>
+      <dl class="space-y-5">
+        {feature.rows.map((row) => (
+          <div>
+            <dt class="text-[var(--color-void-text-2)]">{row.label}</dt>
+            <dd class="mt-1">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+      {feature.command && (
+        <div class="mt-5 border-t border-[var(--color-void-border)] pt-4">
+          <p class="mb-2 text-[var(--color-void-text-2)]">{z ? '命令示例' : 'Example command'}</p>
+          <code class="block overflow-x-auto whitespace-pre">{feature.command}</code>
+        </div>
+      )}
+    </TermPanel>
+    <div slot="body">
+      {feature.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
     </div>
-  </TermPanel>
+    <a slot="cta" href={feature.url} class="datum text-link mt-6 inline-block">
+      {z ? '使用说明' : 'Usage documentation'} →
+    </a>
+  </ScrollSection>
+))}
 
-  <div slot="body">
-    <p>
-      {
-        z
-          ? <>消息和工具结果保存在本地。重新打开历史会话，可以查看已有记录，再继续处理同一个项目。</>
-          : <>Messages and tool results are saved locally. Reopen a conversation to review its history and continue working on the same project.</>
-      }
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x py-12">
+    <p class="max-w-3xl text-[0.9375rem] leading-relaxed text-[var(--color-text-2)]">
+      {z
+        ? '也支持多家模型提供方、Skills 和 MCP。AXCrew 提供文件变更审查和网页预览；本地 Windows AX 可直接操作预览页，其他桌面平台目前支持普通预览。'
+        : 'AX also supports multiple model providers, skills and MCP. AXCrew includes file change review and web preview. Local Windows AX can control preview pages; other desktop platforms currently support user preview.'}
     </p>
-    <p>
-      {
-        z
-          ? <>可以导出会话和记忆作为备份。导入前先检查内容和冲突，再决定是否合并。</>
-          : <>Export conversations and memory as a backup. Inspect the backup and any conflicts before importing it.</>
-      }
-    </p>
-    <p>
-      {
-        z
-          ? <>默认数据保存在安装目录的 <code class="chip">.ax</code> 下，各项目分别存储。删除项目文件夹不会同时删除会话历史。</>
-          : <>Data is saved under <code class="chip">.ax</code> in the install directory by default, with separate project stores. Deleting a project folder does not delete its conversation history.</>
-      }
-    </p>
+    <a href={z ? '/zh/crew' : '/crew'} class="datum text-link mt-4 inline-block">{z ? '查看 AXCrew 功能' : 'See AXCrew features'} →</a>
   </div>
-</ScrollSection>
-
-<!-- ════════════════ 02 · SKILLS, MCP, MEMORY ════════════════ -->
-<ScrollSection
-  flip
-  kicker={z ? '02 · 能力' : '02 · capabilities'}
-  title={z ? '添加技能和外部工具' : 'Add skills and external tools'}
->
-  <TermPanel slot="demo" title="ax · skills & tools">
-    <div class="space-y-5">
-      <div><p>SKILL.md</p><p class="mt-1 text-[var(--color-void-text-2)]">{z ? '任务说明与配套资源' : 'Task instructions and resources'}</p></div>
-      <div><p>MCP</p><p class="mt-1 text-[var(--color-void-text-2)]">{z ? '连接外部工具' : 'Connections to external tools'}</p></div>
-      <div><p>{z ? '项目设置' : 'Project settings'}</p><p class="mt-1 text-[var(--color-void-text-2)]">{z ? '为不同项目选择不同的技能和工具' : 'Choose skills and tools for each project'}</p></div>
-    </div>
-  </TermPanel>
-
-  <div slot="body">
-    <p>
-      {
-        z
-          ? <>把常用任务的说明和资源整理成 <code class="chip">SKILL.md</code> 技能包，供 AX 在相关任务中使用。</>
-          : <>Package instructions and resources for recurring tasks in a <code class="chip">SKILL.md</code> skill that AX can use when relevant.</>
-      }
-    </p>
-    <p>
-      {
-        z
-          ? <>通过 MCP 接入外部工具。配置好服务器后，AX 可以在任务中调用它提供的工具。</>
-          : <>Connect external tools through MCP. Once a server is configured, AX can call the tools it provides during a task.</>
-      }
-    </p>
-    <p>
-      {
-        z
-          ? <>技能、MCP 和记忆可以按项目管理，也可以设置为全局使用。项目设置可以覆盖全局设置。</>
-          : <>Manage skills, MCP and memory per project or globally. Project settings can override global settings.</>
-      }
-    </p>
-  </div>
-</ScrollSection>
-
-<!-- ════════════════ 03 · PROVIDERS ════════════════ -->
-<ScrollSection
-  kicker={z ? '03 · 模型' : '03 · models'}
-  title={z ? '使用不同的模型' : 'Use different models'}
->
-  <TermPanel slot="demo" title="ax · /model" meta={z ? '部分支持的提供方' : 'selected providers'}>
-    <div class="space-y-1">
-      <p class="text-[var(--color-void-text-2)]">{z ? '模型提供方与登录方式' : 'Providers and sign-in options'}</p>
-      <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
-        <p>Anthropic</p>
-        <p>OpenAI-compatible</p>
-        <p>Gemini</p>
-        <p>Vertex</p>
-        <p>Bedrock</p>
-        <p>Codex OAuth</p>
-        <p>WorkBuddy</p>
-        <p class="text-[var(--color-void-text-2)]">local models…</p>
-      </div>
-    </div>
-    <p class="mt-3 border-t border-[var(--color-void-border)] pt-3 text-[var(--color-void-text-2)]">
-      /model provider/model-id
-    </p>
-  </TermPanel>
-
-  <div slot="body">
-    <p>
-      {
-        z
-          ? <>支持 DeepSeek、OpenAI、Anthropic、Gemini 等模型提供方，以及 Codex 和 WorkBuddy 登录。可用模型取决于已配置的账号与服务。</>
-          : <>Supported providers include DeepSeek, OpenAI, Anthropic and Gemini, with sign-in options for Codex and WorkBuddy. Available models depend on your accounts and configured services.</>
-      }
-    </p>
-    <p>
-      {
-        z
-          ? <>在会话中用 <code class="chip">/model</code> 选择模型。所选模型和推理强度会保存，下次启动时恢复。</>
-          : <>Use <code class="chip">/model</code> to choose a model during a conversation. Your model and reasoning-effort selection are saved for the next launch.</>
-      }
-    </p>
-    <p>
-      {
-        z
-          ? <>也可以配置 OpenAI 兼容服务的地址，接入对应的托管或本地模型。</>
-          : <>You can also configure an OpenAI-compatible endpoint for hosted or local models.</>
-      }
-    </p>
-  </div>
-</ScrollSection>
-
-<!-- ════════════════ 04 · AXCREW ════════════════ -->
-<ScrollSection
-  flip
-  kicker={z ? '04 · 控制平面' : '04 · control plane'}
-  title={z ? '连接其他机器上的 AX' : 'Connect AX on other machines'}
->
-  <TermPanel slot="demo" title="ax crew" meta={z ? '连接命令' : 'connection commands'}>
-    <p class="mb-3 text-[var(--color-void-text-2)]">{z ? '在目标机器上配对 AX' : 'Pair AX on the target machine'}</p>
-    <p>$ ax crew pair &lt;code&gt; --gateway &lt;url&gt;</p>
-    <p class="mb-3 mt-5 text-[var(--color-void-text-2)]">{z ? '连接到 Crew 网关' : 'Connect to the Crew gateway'}</p>
-    <p>$ ax crew connect &lt;url&gt;</p>
-  </TermPanel>
-
-  <div slot="body">
-    <p>
-      {
-        z
-          ? <>在另一台机器上安装 AX，用配对码连接到 AXCrew，就可以从桌面端查看会话、发送任务和处理审批。</>
-          : <>Install AX on another machine and pair it with AXCrew to view conversations, send tasks and handle approvals from the desktop app.</>
-      }
-    </p>
-    <p>
-      {
-        z
-          ? <>配对设备主动连接 Crew 网关，不需要为每台 AX 机器开放入站端口。远程连接需要可访问的 HTTPS/WSS 网关。</>
-          : <>Paired devices connect to the Crew gateway without opening inbound ports on each AX machine. Remote connections need a reachable HTTPS/WSS gateway.</>
-      }
-    </p>
-    <p>
-      {
-        z
-          ? <>每台机器保留自己的模型配置、凭据、技能和记忆。需要多机协作时，还可以注册分布式 worker，由 Crew 分配工作并保存任务检查点。</>
-          : <>Each machine keeps its own model configuration, credentials, skills and memory. For distributed work, register workers so Crew can assign tasks and retain checkpoints.</>
-      }
-    </p>
-  </div>
-</ScrollSection>
+</section>
 
 <!-- ════════════════ CLOSE ════════════════ -->
 <section>

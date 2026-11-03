@@ -86,11 +86,12 @@ run of paired sections where a concrete artefact sits next to the reasoning.
 | # | Section | Left column | Right column |
 |---|---|---|---|
 | — | Hero | — | Centred: serif italic headline, one-line claim, install command, version links. Faint grid texture behind. |
-| — | Product use cases | — | Project work, model/tool choice, web preview and multi-machine collaboration |
-| 01 | Sessions | `ax · session` panel | Local conversation history, continuation and backups |
-| 02 | Capabilities | `ax · capabilities` panel | Skills, MCP tools and local memory |
-| 03 | Models | `ax · /model` panel | Provider sign-in and model selection |
-| 04 | Control plane | `ax crew` panel | AXCrew pairing and independent instances |
+| — | Capability overview | — | Goal acceptance, Long Project, reviewed learning and distributed recovery |
+| 01 | Goal | Target / acceptance / control | Explicit acceptance checks, continuation and stop conditions |
+| 02 | Long Project | Working document / handoff / history | Opt-in project context and session rotation |
+| 03 | Learned skills | Source / review / use | Local experience, explicit review and trial |
+| 04 | Distributed work | Assignment / persistence / recovery | Capabilities, resource scheduling and conditional takeover |
+| — | Other features | — | Brief model, Skills/MCP and desktop preview mention |
 | — | Close | — | Centred re-install + links |
 
 Sections alternate side on `lg` (`flip` on `ScrollSection`), so the page doesn't
@@ -119,7 +120,7 @@ src/
 │  ├─ Reveal.astro           # scroll-entrance animation (progressive enhancement)
 │  ├─ CrewUI.astro           # AXCrew orchestration panel: AX instances + approvals + event stream
 │  └─ pages/                 # one bilingual component per route body
-│     ├─ Home.astro          # / — hero · product use cases · 4 paired sections · close
+│     ├─ Home.astro          # / — hero · capability overview · 4 paired sections · close
 │     ├─ AxPage.astro        # /ax — runtime loop / tools / scopes / state / sandbox
 │     ├─ CrewPage.astro      # /crew — connect / identities / surface / work / durable / limits
 │     ├─ DocsPage.astro      # /docs — sticky sidebar + section list
@@ -241,19 +242,22 @@ compact diff review, following the product docs. Other platforms provide ordinar
 preview; embedded Agent control is not claimed for them. Download install-command
 labels now follow the page language.
 
-## Homepage simplification (2026-11-03)
+## Homepage capabilities (2026-11-03)
 
-Removed the Context and Tools & permissions showcase sections in both languages.
-Their token budgeting, permission types and concurrency rules remain in product
-and documentation pages. The homepage now has four numbered showcases, with a
-shorter path from the product introduction to sessions, capabilities, models and
-Crew. The former Why AX section is rewritten as concrete product use cases: project work, model/tool choice, embedded preview and multi-machine collaboration. The Context and Tools & permissions showcase sections remain removed. Session wording describes saved history and continuation
-without promising that work can never run twice.
+The bilingual homepage now highlights four implemented capabilities instead of
+separate sections for conversation storage, tool connections and model choice:
 
-## Homepage copy (2026-11-03)
+- Goal: explicit acceptance checks and continuation, with pause/block/budget limits;
+  no periodic background wakeup is implied.
+- Long Project: opt-in working documents and automatic/manual Session handoffs.
+- Learned skills: proposals from local task records, reviewed before trial;
+  analysis uses the configured provider, not a claim of offline inference.
+- Distributed collaboration: capability/resource placement and checkpoint recovery;
+  recovery needs compatible environments/files and does not migrate whole stores.
 
-The English and Chinese homepage use direct product descriptions for the hero,
-use cases, sessions, skills/tools, models, Crew and installation. Replaced
-architecture slogans and simulated session/connection logs with actual commands
-labelled as examples. Context budgeting and permission-declaration sections
-remain removed. Product capability and platform limits are preserved.
+Source contracts are AX docs/goal.md, docs/long-project.md, docs/evolution.md and
+AXCrew docs/distributed-collaboration.md. Panels explain workflow and show actual
+commands, not simulated results. Each section links to its usage documentation.
+The same feature data supplies the overview and detailed sections in each language.
+Basic model/tool support and platform-limited embedded preview have a brief mention.
+Context budgeting and permission-declaration showcase sections remain removed.
