@@ -78,13 +78,15 @@ const RECOVERY = z
 const DESKTOP = z
   ? [
       { t: '会话与项目', d: '桌面端按项目组织会话，可以继续本地 AX 的历史——打开后看到原始消息与合成器，发送就接着同一个 AX 会话跑。' },
-      { t: 'Review 面板', d: '宽侧栏展示保存的 diff、可展开的工作区文件树、可关闭标签页与 Markdown 预览。本地 UTF-8 文件可直接编辑保存，带磁盘变更检查。' },
+      { t: '内嵌网页预览', d: '原生多标签浏览器支持搜索、导航和本地开发页面。Windows 本地 AX 可直接读取、点击和填写预览页，遵守网站权限及网络保护；其他平台目前仅支持普通预览。远程任务使用自身浏览器环境。' },
+      { t: 'Review 面板', d: '精简变更行连接到侧栏 diff 审查，侧栏还提供可展开的工作区文件树、可关闭标签页与 Markdown 预览。本地 UTF-8 文件可直接编辑保存，带磁盘变更检查。' },
       { t: 'Settings → Goal', d: '配置 AX 拥有的全局或项目验收策略：确定性或模型验证、All/Any 条件、Command/HTTP/MCP 验证器、执行预算与进度阈值。AX 负责持久化，Crew 不保存副本。' },
       { t: 'Settings → Plugins', d: '统一管理 Mod、MCP 与技能，并按全局/项目作用域控制委派深度与并行度（0 关闭，1 直接子代理，更大允许嵌套）。' },
     ]
   : [
       { t: 'Sessions and projects', d: 'The desktop organises sessions by project and can continue local AX history — open one to see the original messages and composer; sending resumes the same AX session.' },
-      { t: 'Review pane', d: 'A wide sidebar with saved diffs, an expandable workspace tree, closable tabs and Markdown preview. Local UTF-8 files can be edited and saved with a disk-change check.' },
+      { t: 'Embedded web preview', d: 'Native browser tabs support search, navigation and local development pages. Local Windows AX can read, click and fill preview pages under website permissions and network protection. Other platforms currently offer ordinary preview only; remote tasks use their own browser environment.' },
+      { t: 'Review pane', d: 'Compact change rows open sidebar diff review, alongside an expandable workspace tree, closable tabs and Markdown preview. Local UTF-8 files can be edited and saved with a disk-change check.' },
       { t: 'Settings → Goal', d: 'Configure AX-owned global or project acceptance policy: deterministic or model validation, All/Any conditions, Command/HTTP/MCP validators, execution budgets and progress thresholds. AX persists it; Crew keeps no duplicate.' },
       { t: 'Settings → Plugins', d: 'Manage Mods, MCP and skills together, and control delegation depth and parallelism per scope (0 disables, 1 permits direct children, higher allows nesting).' },
     ];

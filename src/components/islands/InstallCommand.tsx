@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import type { Lang } from '../../lib/i18n';
 import { AFTER_INSTALL, INSTALL } from '../../lib/site';
 
 const TABS = [
@@ -8,7 +9,8 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-export default function InstallCommand() {
+export default function InstallCommand({ lang = 'en' }: { lang?: Lang }) {
+  const z = lang === 'zh';
   const [tab, setTab] = useState<TabId>('unix');
   const [copied, setCopied] = useState(false);
   const preRef = useRef<HTMLPreElement | null>(null);
@@ -28,7 +30,7 @@ export default function InstallCommand() {
   return (
     <div className="panel-dark grid-bg">
       <div className="hairline-dark-b flex flex-wrap items-center justify-between gap-3 bg-void-2 px-3.5 py-2">
-        <div className="flex flex-wrap items-center gap-5" role="tablist" aria-label="Install platform">
+        <div className="flex flex-wrap items-center gap-5" role="tablist" aria-label={z ? '安装平台' : 'Install platform'}>
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -49,7 +51,7 @@ export default function InstallCommand() {
           onClick={() => void copy()}
           className="mono-micro cursor-pointer text-fog-2 transition-colors duration-150 hover:text-fog"
         >
-          {copied ? 'copied' : 'copy'}
+          {copied ? (z ? '已复制' : 'copied') : (z ? '复制' : 'copy')}
         </button>
       </div>
 

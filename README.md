@@ -11,10 +11,10 @@ almost no shadow, no AI-SaaS gradients, no glassmorphism, no card stacks.
 
 ## Commands
 
-The download page distinguishes source-level Linux/macOS build/install adapters
-from actually published archives and installers. New platform packages require
-native validation and publication; existing release badges/links are unchanged.
-This follows AX and AXCrew `docs/platforms.md`.
+The download page reflects published AX 0.3.17 and AXCrew 0.3.13 assets for
+Windows, Linux and macOS. Version links point to those exact GitHub releases;
+GitCode repository links provide China mirror entry points without claiming
+mirror synchronization was verified. Android remains unchanged.
 
 Sandbox copy in the AX page and documentation overview distinguishes file/terminal
 confinement, application/site access and action approval. Native OS sandbox support
@@ -86,13 +86,11 @@ run of paired sections where a concrete artefact sits next to the reasoning.
 | # | Section | Left column | Right column |
 |---|---|---|---|
 | — | Hero | — | Centred: serif italic headline, one-line claim, install command, version links. Faint grid texture behind. |
-| — | Why AX? | — | Four claims (state stays local / kernel owns mechanism / one binary one loop / agents everywhere, one place to run them) |
-| 01 | Context | `ax · context` panel | Budget-derived selection, history never deleted, `[ax-progress]` |
-| 02 | Tools & permissions | `ax · permission` panel | `ToolPermission`, deny > ask > allow, leases and concurrency |
-| 03 | Durability | `ax · session` panel | Checkpoint before advancing, SQLite + JSONL, per-project store |
-| 04 | Capabilities | `ax · capabilities` panel | Skills lexical routing, MCP transports, memory scopes |
-| 05 | Models | `ax · /model` panel | Dynamic catalog, `/model`, `ModelProvider` trait |
-| 06 | Control plane | `ax crew` panel | AXCrew pairing, outbound WSS, independent instances |
+| — | Product use cases | — | Project work, model/tool choice, web preview and multi-machine collaboration |
+| 01 | Sessions | `ax · session` panel | Local conversation history, continuation and backups |
+| 02 | Capabilities | `ax · capabilities` panel | Skills, MCP tools and local memory |
+| 03 | Models | `ax · /model` panel | Provider sign-in and model selection |
+| 04 | Control plane | `ax crew` panel | AXCrew pairing and independent instances |
 | — | Close | — | Centred re-install + links |
 
 Sections alternate side on `lg` (`flip` on `ScrollSection`), so the page doesn't
@@ -121,7 +119,7 @@ src/
 │  ├─ Reveal.astro           # scroll-entrance animation (progressive enhancement)
 │  ├─ CrewUI.astro           # AXCrew orchestration panel: AX instances + approvals + event stream
 │  └─ pages/                 # one bilingual component per route body
-│     ├─ Home.astro          # / — hero · why · 6 paired sections · close
+│     ├─ Home.astro          # / — hero · product use cases · 4 paired sections · close
 │     ├─ AxPage.astro        # /ax — runtime loop / tools / scopes / state / sandbox
 │     ├─ CrewPage.astro      # /crew — connect / identities / surface / work / durable / limits
 │     ├─ DocsPage.astro      # /docs — sticky sidebar + section list
@@ -132,9 +130,9 @@ src/
 │  └─ TerminalHero.tsx       # animated terminal cycling real AX command sequences
 ├─ lib/                      # data layer (all copy lives here)
 │  ├─ i18n.ts                # Lang / B / b() / pick() / path helpers
-│  ├─ site.ts                # SITE (axVersion=0.3.11, crewVersion=0.3.7) / NAV / INSTALL / FOOTER_COLS
+│  ├─ site.ts                # SITE (axVersion=0.3.17, crewVersion=0.3.13) / NAV / INSTALL / FOOTER_COLS
 │  ├─ topology.ts            # demo data: TASK_JOURNEY, MACHINE_STATES, CREW_UI (legacy exports kept)
-│  └─ content.ts             # DOCS_SECTIONS + CHANGELOG (AX through 0.3.11, AXCrew through 0.3.7)
+│  └─ content.ts             # DOCS_SECTIONS + CHANGELOG (AX through 0.3.17, AXCrew through 0.3.13)
 ├─ pages/                    # EN: /  /ax  /crew  /docs  /download  /changelog
 ├─ pages/zh/                 # 中文: /zh …
 └─ styles/global.css         # dark design system (Tailwind v4 @theme + legacy aliases)
@@ -158,7 +156,7 @@ start children. This matches `ax/docs/agent-runtime.md` and ADR 0030. Release
 badges remain tied to published versions.
 
 - Version badges in `src/lib/site.ts` (`axVersion`, `crewVersion`) must match the
-  current real releases (ax v0.3.11, axcrew v0.3.7).
+  current real releases (ax v0.3.17, axcrew v0.3.13).
 - Demo task flows, product UI mocks, docs and changelog entries describe actual
   behavior; when AX/AXCrew behavior changes, update the site accordingly.
 - Do not add marketing filler ("Revolutionize", "Supercharge", …). Voice is short,
@@ -208,9 +206,9 @@ before going live:
 | Site domain | `https://axium.dev` | `astro.config.mjs` (`site`) |
 | Install commands | real — `https://raw.githubusercontent.com/Axium-Labs/AX/main/scripts/install.sh` / `install.ps1`, verbatim from the AX repo README | `src/lib/site.ts` (`INSTALL`) |
 
-## Release synchronization (2026-10-14)
+## Release synchronization (2026-11-03)
 
-Product versions: AX 0.3.16 and AXCrew 0.3.12. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
+Product versions: AX 0.3.17 and AXCrew 0.3.13. The download pages consume `src/lib/site.ts`. Website production build and Astro diagnostics are checked with the bundled Node 24 runtime.
 
 ## Distributed Collaboration content (2026-10-05)
 
@@ -231,3 +229,31 @@ AXCrew device-pairing copy distinguishes desktop-issued AX pairing codes from ph
 ## Desktop release synchronization (2026-10-27)
 
 AX 0.3.16 provides Windows x64, Linux x64 GNU/musl, Linux ARM64 musl and macOS Intel/Apple Silicon archives. AXCrew 0.3.12 provides Windows x64 NSIS, Linux x64 Debian/AppImage, Linux ARM64 Debian and macOS Intel/Apple Silicon DMGs. Android is unchanged. macOS packages are unsigned and not notarized. Release assets are verified against their shared SHA256SUMS; native builds do not replace manual runtime acceptance on each platform.
+
+## Content synchronization (2026-11-03)
+
+Both languages share the same updated versions, changelog, download links and
+capability copy. GitHub latest-release API confirmed six platform packages plus
+SHA256SUMS for each product. AX content covers provider-scoped reasoning replay
+and incomplete stream/tool-call handling. Crew content covers native multi-tab
+preview, local Windows embedded Agent control, permission/network limits and
+compact diff review, following the product docs. Other platforms provide ordinary
+preview; embedded Agent control is not claimed for them. Download install-command
+labels now follow the page language.
+
+## Homepage simplification (2026-11-03)
+
+Removed the Context and Tools & permissions showcase sections in both languages.
+Their token budgeting, permission types and concurrency rules remain in product
+and documentation pages. The homepage now has four numbered showcases, with a
+shorter path from the product introduction to sessions, capabilities, models and
+Crew. The former Why AX section is rewritten as concrete product use cases: project work, model/tool choice, embedded preview and multi-machine collaboration. The Context and Tools & permissions showcase sections remain removed. Session wording describes saved history and continuation
+without promising that work can never run twice.
+
+## Homepage copy (2026-11-03)
+
+The English and Chinese homepage use direct product descriptions for the hero,
+use cases, sessions, skills/tools, models, Crew and installation. Replaced
+architecture slogans and simulated session/connection logs with actual commands
+labelled as examples. Context budgeting and permission-declaration sections
+remain removed. Product capability and platform limits are preserved.

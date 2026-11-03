@@ -18,14 +18,14 @@ const z = lang === 'zh';
 const PLATFORMS: { os: string; arch: string; notes: string; install: string }[] = z
   ? [
       { os: 'macOS',   arch: 'arm64 · x64',  notes: '原生二进制', install: '~/.local/bin/ax' },
-      { os: 'Linux',   arch: 'x64 · arm64',  notes: 'musl 静态二进制', install: '~/.local/bin/ax' },
-      { os: 'Windows', arch: 'x64',          notes: '原生或 WSL 执行', install: '%LOCALAPPDATA%\\Programs\\AX\\bin' },
+      { os: 'Linux',   arch: 'x64 · arm64',  notes: 'x64 GNU/musl · ARM64 musl', install: '~/.local/bin/ax' },
+      { os: 'Windows', arch: 'x64',          notes: '原生 Windows 二进制', install: '%LOCALAPPDATA%\\Programs\\AX\\bin' },
       { os: 'Source',  arch: 'any',          notes: '从 ax 仓库构建', install: 'cargo build --release' },
     ]
   : [
       { os: 'macOS',   arch: 'arm64 · x64',  notes: 'native binary',   install: '~/.local/bin/ax' },
-      { os: 'Linux',   arch: 'x64 · arm64',  notes: 'musl static',     install: '~/.local/bin/ax' },
-      { os: 'Windows', arch: 'x64',          notes: 'native or WSL',   install: '%LOCALAPPDATA%\\Programs\\AX\\bin' },
+      { os: 'Linux',   arch: 'x64 · arm64',  notes: 'x64 GNU/musl · ARM64 musl',     install: '~/.local/bin/ax' },
+      { os: 'Windows', arch: 'x64',          notes: 'native Windows binary',   install: '%LOCALAPPDATA%\\Programs\\AX\\bin' },
       { os: 'Source',  arch: 'any',          notes: 'build from source', install: 'cargo build --release' },
     ];
 
@@ -54,13 +54,26 @@ const ENV_VARS: { name: string; purpose: string }[] = z
   <div class="container-x section-y">
     <div class="mx-auto max-w-3xl">
       <Reveal>
-        <InstallCommand client:visible />
+        <InstallCommand client:visible lang={lang} />
         <p class="datum mt-4">
           {z
             ? 'Windows、Linux 与 macOS 归档均随本版本发布，安装前会校验 SHA256SUMS。'
             : 'Windows, Linux and macOS archives ship with this release and are verified against SHA256SUMS before installation.'}
         </p>
       </Reveal>
+    </div>
+  </div>
+</section>
+
+<section class="border-b border-[var(--color-border)]">
+  <div class="container-x py-8">
+    <div class="mx-auto max-w-3xl">
+      <p class="label mb-4">{z ? 'AX 发布与国内镜像' : 'AX releases & China mirror'}</p>
+      <div class="flex flex-wrap gap-x-6 gap-y-3 text-sm text-[var(--color-text-2)]">
+        <a href={`https://github.com/Axium-Labs/AX/releases/tag/v${SITE.axVersion}`} class="underline underline-offset-4">GitHub · AX {SITE.axVersion}</a>
+        <a href="https://gitcode.com/axlab/AX" class="underline underline-offset-4">GitCode · {z ? '国内镜像' : 'China mirror'}</a>
+      </div>
+      <p class="datum mt-4">{z ? '安装器默认使用 GitHub；GitCode 提供国内镜像访问入口。' : 'The installer defaults to GitHub; GitCode offers a China mirror entry point.'}</p>
     </div>
   </div>
 </section>
@@ -136,7 +149,7 @@ const ENV_VARS: { name: string; purpose: string }[] = z
       <Reveal delay={80}>
         <div class="border border-[var(--color-border)]">
           <a
-            href="https://github.com/Axium-Labs/AXCrew/releases/latest"
+            href={`https://github.com/Axium-Labs/AXCrew/releases/tag/v${SITE.crewVersion}`}
             class="flex items-center justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 transition-colors duration-150 hover:bg-[var(--color-bg-raised)]"
           >
             <span class="flex items-center gap-3">
@@ -146,6 +159,10 @@ const ENV_VARS: { name: string; purpose: string }[] = z
               </span>
             </span>
             <span class="mono-micro shrink-0">github.com/Axium-Labs/AXCrew →</span>
+          </a>
+          <a href="https://gitcode.com/axlab/AXCrew" class="flex items-center justify-between gap-4 border-b border-[var(--color-border)] px-5 py-4 transition-colors duration-150 hover:bg-[var(--color-bg-raised)]">
+            <span class="mono-micro">{z ? '国内镜像' : 'China mirror'}</span>
+            <span class="mono-micro shrink-0">gitcode.com/axlab/AXCrew →</span>
           </a>
           <a
             href="https://github.com/Axium-Labs/AXCrew"

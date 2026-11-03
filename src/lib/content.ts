@@ -13,6 +13,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.3.17',
+    product: 'AX',
+    entries: [
+      b('Preserve provider-scoped reasoning state across Chat Completions and Responses tool rounds', '在 Chat Completions 与 Responses 工具轮次间保留提供方作用域内的推理状态'),
+      b('Reject failed or unfinished streams and withhold incomplete tool calls from execution', '拒绝失败或未正常结束的响应流，避免执行未完成的工具调用'),
+      b('Local Crew browser bridge, runtime benchmarks and contribution documentation', '本地 Crew 浏览器桥接、运行时基准与贡献文档'),
+    ],
+  },
+  {
+    version: '0.3.13',
+    product: 'AXCrew',
+    entries: [
+      b('Native multi-tab web preview with local Windows AX control through the embedded browser', '原生多标签网页预览，本地 Windows AX 可直接操作内嵌浏览器'),
+      b('Session-bound browser tabs, website permissions and controlled-page network protection', '按会话管理浏览器标签，遵守网站权限并保护受控页面的网络访问'),
+      b('Compact change review, project removal and unread completion notification fixes', '精简变更审查，修复项目移除与未读完成提醒'),
+      b('Windows, Linux and macOS desktop installers; Android unchanged', 'Windows、Linux 与 macOS 桌面安装包；Android 保持不变'),
+    ],
+  },
+  {
     version: '0.3.16',
     product: 'AX',
     entries: [
@@ -215,6 +234,14 @@ export const DOCS_SECTIONS: DocSection[] = [
     code: 'curl -fsSL https://raw.githubusercontent.com/Axium-Labs/AX/main/scripts/install.sh | sh',
   },
   {
+    id: 'model-protocols',
+    title: b('Model response handling', '模型响应处理'),
+    body: b(
+      'Chat Completions and Responses adapters retain reasoning state for the matching provider and model. Explicit stream errors and missing completion boundaries fail instead of accepting partial output as success. Unfinished tool calls are withheld from execution; declared token limits use the existing continuation path.',
+      'Chat Completions 与 Responses 适配器保留匹配提供方和模型的推理状态。明确的流错误或缺失完成边界会报错，不将部分输出当作成功；未完成的工具调用不会执行，明确的 token 上限使用已有续接流程。',
+    ),
+  },
+  {
     id: 'runtime',
     title: b('Runtime', '运行时'),
     body: b(
@@ -230,6 +257,14 @@ export const DOCS_SECTIONS: DocSection[] = [
       '内置工具：shell、filesystem、find_files/glob、patch、search、web、view_image。每个工具都声明自己的权限——按能力 allow / ask / deny——经由 UI 与运行时共享的同一个 PermissionStore。shell 和未知影响工具持有独占租约；只读工具声明影响后可并发运行。',
     ),
     code: 'ax run "find the failing test and fix it"',
+  },
+  {
+    id: 'browser',
+    title: b('Browser preview & control', '网页预览与操作'),
+    body: b(
+      'Crew provides native browser tabs in the conversation sidebar. Local Windows AX uses an authenticated loopback bridge to inspect and interact with those pages, enforcing AX website permissions and controlled-page network protection. Other desktop platforms currently support user preview without Agent control. Remote AX tasks use their own runtime; standalone browser automation requires Node and Playwright.',
+      'Crew 会话侧栏提供原生浏览器标签。本地 Windows AX 通过经过认证的本机桥接读取和操作页面，遵守 AX 网站权限与受控页面网络保护。其他桌面平台目前支持用户预览，不支持 Agent 控制；远程 AX 使用自身运行环境，独立浏览器自动化需要 Node 和 Playwright。',
+    ),
   },
   {
     id: 'skills',
