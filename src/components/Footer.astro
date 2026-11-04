@@ -12,7 +12,7 @@ const { lang = 'en' } = Astro.props;
 <footer class="border-t border-[var(--color-border)] bg-[var(--color-bg-raised)]">
   <div class="container-x py-14">
 
-    <div class="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+    <div class="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
 
       <div>
         <div class="flex items-center gap-2">
@@ -48,7 +48,7 @@ const { lang = 'en' } = Astro.props;
               {col.links.map((l) => (
                 <li>
                   <a
-                    href={localized(l.href, lang)}
+                    href={l.href.startsWith('/') ? localized(l.href, lang) : l.href}
                     class="text-[0.8125rem] text-[var(--color-text-2)] transition-colors duration-150 hover:text-[var(--color-text)]"
                   >
                     {l.label[lang]}

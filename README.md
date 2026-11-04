@@ -16,6 +16,9 @@ Windows, Linux and macOS. Version links point to those exact GitHub releases;
 GitCode repository links provide China mirror entry points without claiming
 mirror synchronization was verified. Android remains unchanged.
 
+The bilingual footer includes a Projects column linking to the AX and AXCrew
+repositories on GitHub and GitCode.
+
 Sandbox copy in the AX page and documentation overview distinguishes file/terminal
 confinement, application/site access and action approval. Native OS sandbox support
 currently requires Linux; Windows/macOS native backends remain unavailable. This

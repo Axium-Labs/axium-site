@@ -48,6 +48,15 @@ export interface FooterCol {
 
 export const FOOTER_COLS: FooterCol[] = [
   {
+    title: b('Projects', '项目'),
+    links: [
+      { href: 'https://github.com/Axium-Labs/AX', label: b('AX · GitHub', 'AX · GitHub') },
+      { href: 'https://github.com/Axium-Labs/AXCrew', label: b('AXCrew · GitHub', 'AXCrew · GitHub') },
+      { href: 'https://gitcode.com/axlab/AX', label: b('AX · GitCode', 'AX · GitCode') },
+      { href: 'https://gitcode.com/axlab/AXCrew', label: b('AXCrew · GitCode', 'AXCrew · GitCode') },
+    ],
+  },
+  {
     title: b('Product', '产品'),
     links: [
       { href: '/ax',        label: b('AX — Agent Runtime',      'AX —— 代理运行时') },
